@@ -1,14 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
-import { IncomeReceipt, Expense, SubtotalCalculations, Rubros } from '@/types/treasury';
+import { IncomeReceipt, Expense, SubtotalCalculations, Rubros, TreasuryBalance } from '@/types/treasury';
 
 const RECEIPTS_KEY = '@treasury_receipts';
 const EXPENSES_KEY = '@treasury_expenses';
+const BALANCE_KEY = '@treasury_balance';
 
 export const [TreasuryProvider, useTreasury] = createContextHook(() => {
   const [receipts, setReceipts] = useState<IncomeReceipt[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [balances, setBalances] = useState<TreasuryBalance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -17,9 +19,10 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
 
   const loadData = async () => {
     try {
-      const [receiptsData, expensesData] = await Promise.all([
+      const [receiptsData, expensesData, balancesData] = await Promise.all([
         AsyncStorage.getItem(RECEIPTS_KEY),
         AsyncStorage.getItem(EXPENSES_KEY),
+        AsyncStorage.getItem(BALANCE_KEY),
       ]);
 
       if (receiptsData) {
@@ -27,6 +30,9 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
       }
       if (expensesData) {
         setExpenses(JSON.parse(expensesData));
+      }
+      if (balancesData) {
+        setBalances(JSON.parse(balancesData));
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -67,19 +73,119 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
     await AsyncStorage.setItem(EXPENSES_KEY, JSON.stringify(updated));
   };
 
+  // Función para establecer saldo inicial manualmente
+  const setSaldoInicial = async (periodo: string, saldo: number) => {
+    const existingIndex = balances.findIndex(b => b.periodo === periodo);
+    let updated: TreasuryBalance[];
+    
+    if (existingIndex !== -1) {
+      updated = [...balances];
+      updated[existingIndex] = { periodo, saldoInicial: saldo };
+    } else {
+      updated = [...balances, { periodo, saldoInicial: saldo }];
+    }
+    
+    setBalances(updated);
+    await AsyncStorage.setItem(BALANCE_KEY, JSON.stringify(updated));
+  };
+
+  // Función para obtener saldo inicial por período (YYYY-MM)
+  const getSaldoInicialPorPeriodo = (periodo: string): number => {
+    const manualBalance = balances.find(b => b.periodo === periodo);
+    if (manualBalance) {
+      return manualBalance.saldoInicial;
+    }
+    
+    // Si no hay saldo manual, calcular desde el período anterior
+    const [year, month] = periodo.split('-').map(Number);
+    const previousDate = new Date(year, month - 2, 1);
+    const previousPeriodo = previousDate.toISOString().substring(0, 7);
+    
+    // Evitar recursión infinita: si es el primer mes, retornar 0
+    if (previousDate.getFullYear() < 2000) {
+      return 0;
+    }
+    
+    const previousMonthStart = `${previousPeriodo}-01`;
+    const previousMonthEnd = new Date(year, month - 1, 0).toISOString().split('T')[0];
+    
+    const previousReceipts = receipts.filter(r => r.fecha >= previousMonthStart && r.fecha <= previousMonthEnd);
+    const previousExpenses = expenses.filter(e => e.fecha >= previousMonthStart && e.fecha <= previousMonthEnd);
+    
+    const previousTotales = previousReceipts.reduce(
+      (acc, receipt) => ({
+        pobres: acc.pobres + (receipt.rubros.pobres ?? 0),
+        agradecimiento: acc.agradecimiento + (receipt.rubros.agradecimiento ?? 0),
+        escuelaSabatica: acc.escuelaSabatica + (receipt.rubros.escuelaSabatica ?? 0),
+        jovenes: acc.jovenes + (receipt.rubros.jovenes ?? 0),
+        adolescentes: acc.adolescentes + (receipt.rubros.adolescentes ?? 0),
+        ninos: acc.ninos + (receipt.rubros.ninos ?? 0),
+        educacion: acc.educacion + (receipt.rubros.educacion ?? 0),
+        salud: acc.salud + (receipt.rubros.salud ?? 0),
+        obraMisionera: acc.obraMisionera + (receipt.rubros.obraMisionera ?? 0),
+        musica: acc.musica + (receipt.rubros.musica ?? 0),
+        construccion: acc.construccion + (receipt.rubros.construccion ?? 0),
+        cultos: acc.cultos + (receipt.rubros.cultos ?? 0),
+      }),
+      {
+        pobres: 0,
+        agradecimiento: 0,
+        escuelaSabatica: 0,
+        jovenes: 0,
+        adolescentes: 0,
+        ninos: 0,
+        educacion: 0,
+        salud: 0,
+        obraMisionera: 0,
+        musica: 0,
+        construccion: 0,
+        cultos: 0,
+      }
+    );
+
+    const previousIglesiaTotal = 
+      previousTotales.pobres * 0.45 +
+      previousTotales.agradecimiento * 0.45 +
+      previousTotales.escuelaSabatica * 0.45 +
+      previousTotales.jovenes * 0.45 +
+      previousTotales.adolescentes * 0.45 +
+      previousTotales.ninos * 0.45 +
+      previousTotales.educacion * 0.45 +
+      previousTotales.salud * 0.45 +
+      previousTotales.obraMisionera * 0.45 +
+      previousTotales.musica * 0.45 +
+      previousTotales.construccion * 0.9 +
+      previousTotales.cultos * 0.9;
+
+    const previousEgresos = previousExpenses.reduce((sum, e) => sum + e.monto, 0);
+    const previousSaldoInicial = getSaldoInicialPorPeriodo(previousPeriodo);
+    
+    return previousSaldoInicial + previousIglesiaTotal - previousEgresos;
+  };
+
+  // Función MEJORADA: Calcula el saldo inicial desde un rango de fechas
+  const getSaldoInicial = (startDate: string, endDate: string): number => {
+    const periodo = startDate.substring(0, 7); // 'YYYY-MM'
+    return getSaldoInicialPorPeriodo(periodo);
+  };
+
   return {
     receipts,
     expenses,
+    balances,
     isLoading,
     addReceipt,
     addExpense,
     deleteReceipt,
     deleteExpense,
+    setSaldoInicial,
+    getSaldoInicial,
+    getSaldoInicialPorPeriodo, // Exportar también esta función
   };
 });
 
 export const useFilteredData = (startDate: string, endDate: string) => {
-  const { receipts, expenses } = useTreasury();
+  const { receipts, expenses, getSaldoInicial } = useTreasury();
 
   return useMemo(() => {
     const filteredReceipts = receipts.filter(r => {
@@ -137,7 +243,7 @@ export const useFilteredData = (startDate: string, endDate: string) => {
       asociacion: {
         primicia: totales.primicia * 1.0,
         diezmo: totales.diezmo * 1.0,
-        pobres: totales.pobres *0.5,
+        pobres: totales.pobres * 0.5,
         agradecimiento: totales.agradecimiento * 0.5,
         escuelaSabatica: totales.escuelaSabatica * 0.5,
         jovenes: totales.jovenes * 0.5,
@@ -219,7 +325,6 @@ export const useFilteredData = (startDate: string, endDate: string) => {
       subtotales.iglesia.construccion +
       subtotales.iglesia.cultos;
 
-      ///diezmo de iglesia
     subtotales.otros.total = 
       subtotales.otros.pobres +
       subtotales.otros.agradecimiento +
@@ -235,13 +340,18 @@ export const useFilteredData = (startDate: string, endDate: string) => {
       subtotales.otros.cultos;
 
     subtotales.totalEgresos = filteredExpenses.reduce((sum, e) => sum + e.monto, 0);
-    subtotales.saldoIglesia = subtotales.iglesia.total - subtotales.totalEgresos;
+    
+    const saldoInicial = getSaldoInicial(startDate, endDate);
+    
+    // FÓRMULA CORRECTA: Saldo Final = Saldo Inicial + Total Iglesia - Egresos
+    subtotales.saldoIglesia = saldoInicial + subtotales.iglesia.total - subtotales.totalEgresos;
 
     return {
       receipts: filteredReceipts,
       expenses: filteredExpenses,
       totales,
       subtotales,
+      saldoInicial,
     };
-  }, [receipts, expenses, startDate, endDate]);
+  }, [receipts, expenses, startDate, endDate, getSaldoInicial]);
 };

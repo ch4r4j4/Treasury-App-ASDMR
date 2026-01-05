@@ -97,4 +97,9 @@ export interface Rubros {
     totales: Rubros;
     subtotales: SubtotalCalculations;
   }
+
+  export interface TreasuryBalance {
+    saldoInicial: number;
+    periodo: string; // formato: 'YYYY-MM'
+  }
   
