@@ -339,6 +339,8 @@ export const useFilteredData = (startDate: string, endDate: string) => {
       subtotales.otros.construccion +
       subtotales.otros.cultos;
 
+    const totalAsociacionYOtros = subtotales.asociacion.total + subtotales.otros.total;
+
     subtotales.totalEgresos = filteredExpenses.reduce((sum, e) => sum + e.monto, 0);
     
     const saldoInicial = getSaldoInicial(startDate, endDate);
@@ -352,6 +354,7 @@ export const useFilteredData = (startDate: string, endDate: string) => {
       totales,
       subtotales,
       saldoInicial,
+      totalAsociacionYOtros,
     };
   }, [receipts, expenses, startDate, endDate, getSaldoInicial]);
 };

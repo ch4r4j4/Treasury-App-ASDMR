@@ -7,10 +7,11 @@ import { useTreasury, useFilteredData } from '@/contexts/TreasuryContext';
 import SaldoInicialModal from '@/components/SaldoInicialModal';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import { generateMonthlyPdfHtml, generateAnnualPdfHtml } from '@/utils/pdfTemplates';
 
 export default function ReportsScreen() {
   const router = useRouter();
-  const { setSaldoInicial, getSaldoInicialPorPeriodo } = useTreasury();
+  const { setSaldoInicial, getSaldoInicialPorPeriodo, receipts, expenses } = useTreasury();
   
   const today = new Date();
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
@@ -19,10 +20,9 @@ export default function ReportsScreen() {
   const [startDate, setStartDate] = useState(firstDayOfMonth);
   const [endDate, setEndDate] = useState(lastDayOfMonth);
   const [showSaldoModal, setShowSaldoModal] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   
   const reportData = useFilteredData(startDate, endDate);
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-
   const periodo = startDate.substring(0, 7);
   const currentSaldo = getSaldoInicialPorPeriodo(periodo);
 
@@ -31,292 +31,45 @@ export default function ReportsScreen() {
     Alert.alert('Éxito', 'Saldo inicial guardado correctamente');
   };
 
-  const generateAnnualPdfHtml = (year: number, initialBalance: number, monthsData: Array<{
-    mes: string;
-    saldoInicial: number;
-    ingresos: number;
-    egresos: number;
-    saldoFinal: number;
-  }>) => {
-    const monthlyData = monthsData;
+  const handleDownloadMonthlyPdf = async () => {
+    try {
+      setIsGeneratingPdf(true);
+      const html = generateMonthlyPdfHtml(reportData, startDate, endDate);
+      
+      const { uri } = await Print.printToFileAsync({ 
+        html,
+        width: 612,
+        height: 792,
+      });
 
-    const monthlyRows = monthlyData.map((month, index) => `
-      <tr style="${index % 2 === 0 ? 'background-color: #f9f9f9;' : ''}">
-        <td style="border: 1px solid #ddd; padding: 12px; font-weight: 600;">${month.mes}</td>
-        <td style="border: 1px solid #ddd; padding: 12px; text-align: right;">$${month.saldoInicial.toFixed(2)}</td>
-        <td style="border: 1px solid #ddd; padding: 12px; text-align: right; color: #4CAF50; font-weight: 600;">$${month.ingresos.toFixed(2)}</td>
-        <td style="border: 1px solid #ddd; padding: 12px; text-align: right; color: #F44336; font-weight: 600;">$${month.egresos.toFixed(2)}</td>
-        <td style="border: 1px solid #ddd; padding: 12px; text-align: right; font-weight: bold; ${month.saldoFinal >= 0 ? 'color: #4CAF50;' : 'color: #F44336;'}">$${month.saldoFinal.toFixed(2)}</td>
-      </tr>
-    `).join('');
-
-    const totalIngresos = monthlyData.reduce((sum, m) => sum + m.ingresos, 0);
-    const totalEgresos = monthlyData.reduce((sum, m) => sum + m.egresos, 0);
-    const saldoFinalAnual = monthlyData[monthlyData.length - 1].saldoFinal;
-
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 40px 30px;
-            background: #ffffff;
-            color: #333;
-          }
-          .header {
-            text-align: center;
-            margin-bottom: 40px;
-            border-bottom: 3px solid #9C27B0;
-            padding-bottom: 20px;
-          }
-          .header h1 {
-            font-size: 32px;
-            color: #1A1A2E;
-            margin-bottom: 8px;
-          }
-          .header .subtitle {
-            font-size: 18px;
-            color: #666;
-            font-weight: 500;
-          }
-          .header .year {
-            font-size: 24px;
-            color: #9C27B0;
-            font-weight: 700;
-            margin-top: 10px;
-          }
-          .info-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-          }
-          .info-box h2 {
-            font-size: 20px;
-            margin-bottom: 15px;
-          }
-          .info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-          }
-          .info-item {
-            background: rgba(255,255,255,0.2);
-            padding: 15px;
-            border-radius: 10px;
-          }
-          .info-label {
-            font-size: 13px;
-            opacity: 0.9;
-            margin-bottom: 5px;
-          }
-          .info-value {
-            font-size: 22px;
-            font-weight: bold;
-          }
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 30px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-radius: 10px;
-            overflow: hidden;
-          }
-          thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-          }
-          th {
-            padding: 18px 12px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          }
-          th:not(:first-child) {
-            text-align: right;
-          }
-          td {
-            padding: 14px 12px;
-            border: 1px solid #e0e0e0;
-            font-size: 15px;
-          }
-          .totals-row {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
-          }
-          .totals-row td {
-            border-color: #d81b60;
-            padding: 18px 12px;
-          }
-          .summary-section {
-            margin-top: 40px;
-            padding: 30px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            border-left: 5px solid #9C27B0;
-          }
-          .summary-title {
-            font-size: 22px;
-            font-weight: bold;
-            color: #1A1A2E;
-            margin-bottom: 20px;
-          }
-          .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-          }
-          .summary-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            text-align: center;
-          }
-          .summary-card-title {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-          }
-          .summary-card-value {
-            font-size: 28px;
-            font-weight: bold;
-            color: #1A1A2E;
-          }
-          .summary-card.positive .summary-card-value {
-            color: #4CAF50;
-          }
-          .summary-card.negative .summary-card-value {
-            color: #F44336;
-          }
-          .footer {
-            margin-top: 50px;
-            text-align: center;
-            color: #999;
-            font-size: 12px;
-            padding-top: 20px;
-            border-top: 2px solid #e0e0e0;
-          }
-          .receipt-style {
-            border: 2px dashed #9C27B0;
-            padding: 20px;
-            margin: 30px 0;
-            background: #fafafa;
-          }
-          @media print {
-            body {
-              padding: 20px;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>📊 Reporte Anual de Tesorería</h1>
-          <div class="subtitle">IASDMR - Iglesia Adventista</div>
-          <div class="year">${year}</div>
-        </div>
-
-                  <div class="info-box">
-          <h2>💰 Resumen Ejecutivo</h2>
-          <div class="info-grid">
-            <div class="info-item">
-              <div class="info-label">Saldo Inicial</div>
-              <div class="info-value">${initialBalance.toFixed(2)}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Total Ingresos</div>
-              <div class="info-value">$${totalIngresos.toFixed(2)}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Total Egresos</div>
-              <div class="info-value">$${totalEgresos.toFixed(2)}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Saldo Final</div>
-              <div class="info-value">$${saldoFinalAnual.toFixed(2)}</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="receipt-style">
-          <h2 style="text-align: center; margin-bottom: 20px; color: #9C27B0;">📋 Movimientos Mensuales</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Mes</th>
-                <th>Saldo Inicial</th>
-                <th>Ingresos</th>
-                <th>Egresos</th>
-                <th>Saldo Final</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${monthlyRows}
-              <tr class="totals-row">
-                <td>TOTAL ANUAL</td>
-                <td style="text-align: right;">${initialBalance.toFixed(2)}</td>
-                <td style="text-align: right;">${totalIngresos.toFixed(2)}</td>
-                <td style="text-align: right;">${totalEgresos.toFixed(2)}</td>
-                <td style="text-align: right;">${saldoFinalAnual.toFixed(2)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="summary-section">
-          <div class="summary-title">📈 Indicadores Financieros</div>
-          <div class="summary-grid">
-            <div class="summary-card positive">
-              <div class="summary-card-title">Promedio Mensual Ingresos</div>
-              <div class="summary-card-value">$${(totalIngresos / 12).toFixed(2)}</div>
-            </div>
-            <div class="summary-card negative">
-              <div class="summary-card-title">Promedio Mensual Egresos</div>
-              <div class="summary-card-value">$${(totalEgresos / 12).toFixed(2)}</div>
-            </div>
-                          <div class="summary-card ${saldoFinalAnual >= 0 ? 'positive' : 'negative'}">
-              <div class="summary-card-title">Balance Neto</div>
-              <div class="summary-card-value">${saldoFinalAnual >= 0 ? '+' : ''}${(saldoFinalAnual - initialBalance).toFixed(2)}</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="footer">
-          <p>Generado el ${new Date().toLocaleDateString('es-ES', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}</p>
-          <p>Sistema de Tesorería IASDMR</p>
-        </div>
-      </body>
-      </html>
-    `;
+      if (Platform.OS === 'web') {
+        const link = document.createElement('a');
+        link.href = uri;
+        link.download = `reporte_mensual_${startDate}_${endDate}.pdf`;
+        link.click();
+      } else {
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (isAvailable) {
+          await Sharing.shareAsync(uri, {
+            UTI: '.pdf',
+            mimeType: 'application/pdf',
+          });
+        } else {
+          Alert.alert('Éxito', 'PDF mensual generado correctamente');
+        }
+      }
+    } catch (error) {
+      console.error('Error generando PDF mensual:', error);
+      Alert.alert('Error', 'No se pudo generar el PDF mensual');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const handleDownloadAnnualPdf = async () => {
     try {
       setIsGeneratingPdf(true);
       
-      // Calcular datos de todos los meses ANTES de generar el HTML
       const year = parseInt(startDate.substring(0, 4));
       const monthsData = [];
       let runningBalance = currentSaldo;
@@ -328,9 +81,8 @@ export default function ReportsScreen() {
         
         const monthName = monthDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
         
-        // Calcular manualmente los datos del mes
-        const monthReceipts = reportData.receipts.filter(r => r.fecha >= monthStart && r.fecha <= monthEnd);
-        const monthExpenses = reportData.expenses.filter(e => e.fecha >= monthStart && e.fecha <= monthEnd);
+        const monthReceipts = receipts.filter(r => r.fecha >= monthStart && r.fecha <= monthEnd);
+        const monthExpenses = expenses.filter(e => e.fecha >= monthStart && e.fecha <= monthEnd);
         
         const monthTotales = monthReceipts.reduce(
           (acc, receipt) => ({
@@ -444,7 +196,7 @@ export default function ReportsScreen() {
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
-            {/* Saldo Inicial Info */}
+            {/* Saldo Inicial Card */}
             <View style={styles.saldoCard}>
               <Text style={styles.saldoLabel}>Saldo Inicial del Período</Text>
               <Text style={styles.saldoAmount}>${currentSaldo.toFixed(2)}</Text>
@@ -457,9 +209,54 @@ export default function ReportsScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Botones de PDF */}
+            {/* Date Range Selection */}
+            <View style={styles.dateSection}>
+              <View style={styles.dateHeader}>
+                <Calendar size={20} color="#9C27B0" />
+                <Text style={styles.dateSectionTitle}>Rango de Fechas</Text>
+              </View>
+              
+              <View style={styles.dateRow}>
+                <View style={styles.dateInputGroup}>
+                  <Text style={styles.dateLabel}>Desde</Text>
+                  <TextInput
+                    style={styles.dateInput}
+                    value={startDate}
+                    onChangeText={setStartDate}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor="#999"
+                  />
+                </View>
+                
+                <View style={styles.dateInputGroup}>
+                  <Text style={styles.dateLabel}>Hasta</Text>
+                  <TextInput
+                    style={styles.dateInput}
+                    value={endDate}
+                    onChangeText={setEndDate}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor="#999"
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* PDF Buttons */}
             <View style={styles.pdfSection}>
               <Text style={styles.sectionTitle}>Generar Reportes</Text>
+              
+              <TouchableOpacity 
+                style={[styles.pdfButton, styles.monthlyButton]}
+                onPress={handleDownloadMonthlyPdf}
+                disabled={isGeneratingPdf}
+              >
+                <Download size={24} color="#FFFFFF" />
+                <View style={styles.pdfButtonContent}>
+                  <Text style={styles.pdfButtonTitle}>Reporte Mensual</Text>
+                  <Text style={styles.pdfButtonSubtitle}>PDF detallado del período seleccionado</Text>
+                </View>
+              </TouchableOpacity>
+
               <TouchableOpacity 
                 style={[styles.pdfButton, styles.annualButton]}
                 onPress={handleDownloadAnnualPdf}
@@ -473,7 +270,7 @@ export default function ReportsScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Balance con Saldo Inicial MEJORADO */}
+            {/* Balance Section */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Balance del Período (Arqueo)</Text>
               <View style={styles.balanceCard}>
@@ -532,7 +329,41 @@ export default function ReportsScreen() {
               </View>
             </View>
 
-            {/* Resto del contenido existente... */}
+            {/* Receipts Detail */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Detalle de Recibos ({reportData.receipts.length})</Text>
+              {reportData.receipts.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyText}>No hay recibos en este rango de fechas</Text>
+                </View>
+              ) : (
+                <View style={styles.tableContainer}>
+                  {reportData.receipts.map((receipt) => (
+                    <View key={receipt.id} style={styles.receiptRow}>
+                      <View style={styles.receiptHeader}>
+                        <Text style={styles.receiptName}>{receipt.nombre}</Text>
+                        <Text style={styles.receiptTotal}>${receipt.total.toFixed(2)}</Text>
+                      </View>
+                      <Text style={styles.receiptDate}>{receipt.fecha} • {receipt.iglesia}</Text>
+                      <View style={styles.receiptRubros}>
+                        {receipt.rubros.diezmo > 0 && (
+                          <Text style={styles.receiptRubro}>Diezmo: ${receipt.rubros.diezmo.toFixed(2)}</Text>
+                        )}
+                        {receipt.rubros.agradecimiento > 0 && (
+                          <Text style={styles.receiptRubro}>Agradec.: ${receipt.rubros.agradecimiento.toFixed(2)}</Text>
+                        )}
+                        {receipt.rubros.cultos > 0 && (
+                          <Text style={styles.receiptRubro}>Cultos: ${receipt.rubros.cultos.toFixed(2)}</Text>
+                        )}
+                        {receipt.rubros.escuelaSabatica > 0 && (
+                          <Text style={styles.receiptRubro}>E.S.: ${receipt.rubros.escuelaSabatica.toFixed(2)}</Text>
+                        )}
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -549,13 +380,8 @@ export default function ReportsScreen() {
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    backgroundColor: '#F5F7FA',
-  },
-  container: {
-    flex: 1,
-  },
+  background: { flex: 1, backgroundColor: '#F5F7FA' },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -566,33 +392,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1A2E',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-  },
+  backButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  headerButtons: { flexDirection: 'row', gap: 8 },
+  iconButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  title: { fontSize: 20, fontWeight: '700', color: '#1A1A2E' },
+  scrollView: { flex: 1 },
+  content: { padding: 20 },
   saldoCard: {
     backgroundColor: '#E3F2FD',
     borderRadius: 16,
@@ -602,18 +407,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#2196F3',
   },
-  saldoLabel: {
-    fontSize: 14,
-    color: '#1976D2',
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  saldoAmount: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#1565C0',
-    marginBottom: 12,
-  },
+  saldoLabel: { fontSize: 14, color: '#1976D2', fontWeight: '600', marginBottom: 8 },
+  saldoAmount: { fontSize: 32, fontWeight: '800', color: '#1565C0', marginBottom: 12 },
   configureSaldoButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -623,46 +418,48 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
   },
-  configureSaldoText: {
+  configureSaldoText: { fontSize: 14, fontWeight: '600', color: '#9C27B0' },
+  dateSection: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  dateHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  dateSectionTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A2E', marginLeft: 8 },
+  dateRow: { flexDirection: 'row', gap: 12 },
+  dateInputGroup: { flex: 1 },
+  dateLabel: { fontSize: 14, fontWeight: '600', color: '#666', marginBottom: 8 },
+  dateInput: {
+    backgroundColor: '#F5F7FA',
+    borderRadius: 12,
+    padding: 12,
     fontSize: 14,
-    fontWeight: '600',
-    color: '#9C27B0',
-  },
-  pdfSection: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
     color: '#1A1A2E',
-    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
+  pdfSection: { marginBottom: 24 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A2E', marginBottom: 12 },
   pdfButton: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
     borderRadius: 16,
     gap: 16,
+    marginBottom: 12,
   },
-  annualButton: {
-    backgroundColor: '#9C27B0',
-  },
-  pdfButtonContent: {
-    flex: 1,
-  },
-  pdfButtonTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  pdfButtonSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-  },
-  section: {
-    marginBottom: 20,
-  },
+  monthlyButton: { backgroundColor: '#2196F3' },
+  annualButton: { backgroundColor: '#9C27B0' },
+  pdfButtonContent: { flex: 1 },
+  pdfButtonTitle: { fontSize: 18, fontWeight: '700', color: '#FFFFFF', marginBottom: 4 },
+  pdfButtonSubtitle: { fontSize: 14, color: 'rgba(255, 255, 255, 0.9)' },
+  section: { marginBottom: 20 },
   balanceCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
@@ -679,30 +476,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
   },
-  balanceLabel: {
-    fontSize: 16,
-    color: '#666',
-  },
-  balanceAmount: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A2E',
-  },
+  balanceLabel: { fontSize: 16, color: '#666' },
+  balanceAmount: { fontSize: 18, fontWeight: '700', color: '#1A1A2E' },
   finalBalanceRow: {
     borderTopWidth: 3,
     borderTopColor: '#E0E0E0',
     marginTop: 12,
     paddingTop: 16,
   },
-  finalBalanceLabel: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#1A1A2E',
-  },
-  finalBalanceAmount: {
-    fontSize: 28,
-    fontWeight: '900',
-  },
+  finalBalanceLabel: { fontSize: 20, fontWeight: '800', color: '#1A1A2E' },
+  finalBalanceAmount: { fontSize: 28, fontWeight: '900' },
   infoBox: {
     backgroundColor: '#FFF3E0',
     borderLeftWidth: 4,
@@ -711,9 +494,36 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginTop: 12,
   },
-  infoText: {
-    fontSize: 13,
-    color: '#E65100',
-    lineHeight: 20,
+  infoText: { fontSize: 13, color: '#E65100', lineHeight: 20 },
+  tableContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
+  receiptRow: { paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
+  receiptHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  receiptName: { fontSize: 16, fontWeight: '700', color: '#1A1A2E', flex: 1 },
+  receiptTotal: { fontSize: 18, fontWeight: '800', color: '#2196F3' },
+  receiptDate: { fontSize: 13, color: '#999', marginBottom: 8 },
+  receiptRubros: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  receiptRubro: {
+    fontSize: 12,
+    color: '#666',
+    backgroundColor: '#F5F7FA',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  emptyState: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 40, alignItems: 'center' },
+  emptyText: { fontSize: 15, color: '#999' },
 });
