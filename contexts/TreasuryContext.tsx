@@ -1,16 +1,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
-import { IncomeReceipt, Expense, SubtotalCalculations, Rubros, TreasuryBalance } from '@/types/treasury';
+import { IncomeReceipt, Expense, SubtotalCalculations, Rubros, TreasuryBalance, Arqueo } from '@/types/treasury';
 
 const RECEIPTS_KEY = '@treasury_receipts';
 const EXPENSES_KEY = '@treasury_expenses';
 const BALANCE_KEY = '@treasury_balance';
+const ARQUEOS_KEY = '@treasury_arqueos';
 
 export const [TreasuryProvider, useTreasury] = createContextHook(() => {
   const [receipts, setReceipts] = useState<IncomeReceipt[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [balances, setBalances] = useState<TreasuryBalance[]>([]);
+  const [arqueos, setArqueos] = useState<Arqueo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -19,10 +21,11 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
 
   const loadData = async () => {
     try {
-      const [receiptsData, expensesData, balancesData] = await Promise.all([
+      const [receiptsData, expensesData, balancesData, arqueosData] = await Promise.all([
         AsyncStorage.getItem(RECEIPTS_KEY),
         AsyncStorage.getItem(EXPENSES_KEY),
         AsyncStorage.getItem(BALANCE_KEY),
+        AsyncStorage.getItem(ARQUEOS_KEY),
       ]);
 
       if (receiptsData) {
@@ -33,6 +36,9 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
       }
       if (balancesData) {
         setBalances(JSON.parse(balancesData));
+      }
+      if (arqueosData) {
+        setArqueos(JSON.parse(arqueosData));
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -169,10 +175,59 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
     return getSaldoInicialPorPeriodo(periodo);
   };
 
+  const guardarArqueo = async (
+    startDate: string, 
+    endDate: string, 
+    reportData: any,
+    descripcion?: string
+  ): Promise<Arqueo> => {
+    const nuevoArqueo: Arqueo = {
+      id: Date.now().toString(),
+      startDate,
+      endDate,
+      saldoInicial: reportData.saldoInicial,
+      saldoFinal: reportData.subtotales.saldoIglesia,
+      totalIngresos: reportData.subtotales.iglesia.total,
+      totalEgresos: reportData.subtotales.totalEgresos,
+      totalRecibos: reportData.receipts.length,
+      totalGastos: reportData.expenses.length,
+      fechaCreacion: new Date().toISOString(),
+      descripcion,
+    };
+
+    const updated = [...arqueos, nuevoArqueo];
+    setArqueos(updated);
+    await AsyncStorage.setItem(ARQUEOS_KEY, JSON.stringify(updated));
+    
+    return nuevoArqueo;
+  };
+
+  const getUltimoArqueo = (): Arqueo | null => {
+    if (arqueos.length === 0) return null;
+    return [...arqueos].sort((a, b) => 
+      new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()
+    )[0];
+  };
+
+  // ✨ NUEVO: Eliminar arqueo
+  const deleteArqueo = async (id: string) => {
+    const updated = arqueos.filter(a => a.id !== id);
+    setArqueos(updated);
+    await AsyncStorage.setItem(ARQUEOS_KEY, JSON.stringify(updated));
+  };
+
+  // ✨ NUEVO: Obtener arqueos ordenados por fecha (más reciente primero)
+  const getArqueosOrdenados = (): Arqueo[] => {
+    return [...arqueos].sort((a, b) => 
+      new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()
+    );
+  };
+
   return {
     receipts,
     expenses,
     balances,
+    arqueos,
     isLoading,
     addReceipt,
     addExpense,
@@ -181,6 +236,10 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
     setSaldoInicial,
     getSaldoInicial,
     getSaldoInicialPorPeriodo, // Exportar también esta función
+    guardarArqueo,
+    getUltimoArqueo,
+    deleteArqueo, 
+    getArqueosOrdenados,
   };
 });
 

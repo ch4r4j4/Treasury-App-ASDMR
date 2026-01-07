@@ -103,3 +103,17 @@ export interface Rubros {
     periodo: string; // formato: 'YYYY-MM'
   }
   
+  // ✨ NUEVO: Metadata del Arqueo
+export interface Arqueo {
+  id: string;
+  startDate: string; // 'YYYY-MM-DD'
+  endDate: string;   // 'YYYY-MM-DD'
+  saldoInicial: number;
+  saldoFinal: number;
+  totalIngresos: number;
+  totalEgresos: number;
+  totalRecibos: number; // cantidad de recibos
+  totalGastos: number;  // cantidad de gastos
+  fechaCreacion: string; // ISO timestamp
+  descripcion?: string; // opcional: "Arqueo de Enero", etc.
+}
