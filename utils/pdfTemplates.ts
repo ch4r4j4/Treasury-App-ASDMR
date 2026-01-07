@@ -1,23 +1,37 @@
-import { ReportData } from '@/types/treasury';
+import { ReportData, Expense } from '@/types/treasury';
 
 // ============================================
-// PLANTILLA HTML - REPORTE MENSUAL
+// PLANTILLA HTML - REPORTE MENSUAL COMPLETO
 // ============================================
 export const generateMonthlyPdfHtml = (
-  reportData: ReportData & { saldoInicial: number },
+  reportData: ReportData & { saldoInicial: number; expenses: Expense[] },
   startDate: string,
   endDate: string
 ): string => {
   const receiptsTableRows = reportData.receipts.map((receipt, index) => `
     <tr style="${index % 2 === 0 ? 'background-color: #f9f9f9;' : ''}">
-      <td style="border: 1px solid #ddd; padding: 8px;">${receipt.fecha}</td>
-      <td style="border: 1px solid #ddd; padding: 8px;">${receipt.nombre}</td>
-      <td style="border: 1px solid #ddd; padding: 8px;">${receipt.iglesia}</td>
-      <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${receipt.rubros.diezmo.toFixed(2)}</td>
-      <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${receipt.rubros.agradecimiento.toFixed(2)}</td>
-      <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${receipt.rubros.cultos.toFixed(2)}</td>
-      <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${receipt.rubros.escuelaSabatica.toFixed(2)}</td>
-      <td style="border: 1px solid #ddd; padding: 8px; text-align: right; font-weight: bold;">${receipt.total.toFixed(2)}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${receipt.fecha}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${receipt.nombre}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${receipt.iglesia}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.primicia > 0 ? receipt.rubros.primicia.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.diezmo > 0 ? receipt.rubros.diezmo.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.pobres > 0 ? receipt.rubros.pobres.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.agradecimiento > 0 ? receipt.rubros.agradecimiento.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.escuelaSabatica > 0 ? receipt.rubros.escuelaSabatica.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.jovenes > 0 ? receipt.rubros.jovenes.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.adolescentes > 0 ? receipt.rubros.adolescentes.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.ninos > 0 ? receipt.rubros.ninos.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.educacion > 0 ? receipt.rubros.educacion.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.salud > 0 ? receipt.rubros.salud.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.obraMisionera > 0 ? receipt.rubros.obraMisionera.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.musica > 0 ? receipt.rubros.musica.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.renuevaRadio > 0 ? receipt.rubros.renuevaRadio.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.primerSabado > 0 ? receipt.rubros.primerSabado.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.semanaOracion > 0 ? receipt.rubros.semanaOracion.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.misionExtranj > 0 ? receipt.rubros.misionExtranj.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.construccion > 0 ? receipt.rubros.construccion.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px;">${receipt.rubros.cultos > 0 ? receipt.rubros.cultos.toFixed(2) : '-'}</td>
+      <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-weight: bold; font-size: 11px; background-color: #E3F2FD;">${receipt.total.toFixed(2)}</td>
     </tr>
   `).join('');
 
@@ -28,176 +42,376 @@ export const generateMonthlyPdfHtml = (
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
+        @page {
+          size: landscape;
+          margin: 8mm;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px 30px; background: #ffffff; color: #333; }
-        .header { text-align: center; margin-bottom: 40px; border-bottom: 3px solid #2196F3; padding-bottom: 20px; }
-        .header h1 { font-size: 32px; color: #1A1A2E; margin-bottom: 8px; }
-        .header .subtitle { font-size: 18px; color: #666; font-weight: 500; }
-        .header .period { font-size: 16px; color: #2196F3; font-weight: 700; margin-top: 10px; }
+        body { 
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+          padding: 0px; 
+          background: #ffffff; 
+          color: #333;
+          font-size: 11px;
+        }
+        .header { 
+          text-align: center; 
+          margin-bottom: 20px; 
+          border-bottom: 3px solid #2196F3; 
+          padding-bottom: 0px; 
+        }
+        .header h1 { font-size: 24px; color: #1A1A2E; margin-bottom: 5px; }
+        .header .subtitle { font-size: 14px; color: #666; font-weight: 500; }
+        .header .period { font-size: 13px; color: #2196F3; font-weight: 700; margin-top: 5px; }
         
-        .info-box { background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .info-box h2 { font-size: 20px; margin-bottom: 15px; }
-        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .info-item { background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; }
-        .info-label { font-size: 13px; opacity: 0.9; margin-bottom: 5px; }
-        .info-value { font-size: 22px; font-weight: bold; }
+        .info-box { 
+          background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); 
+          color: white; 
+          padding: 15px; 
+          border-radius: 10px; 
+          margin-bottom: 20px; 
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 10px;
+        }
+        .info-item { background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; text-align: center; }
+        .info-label { font-size: 10px; opacity: 0.9; margin-bottom: 3px; }
+        .info-value { font-size: 16px; font-weight: bold; }
         
-        table { width: 100%; border-collapse: collapse; margin: 30px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden; }
+        table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          margin: 0px 0; 
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+          font-size: 10px;
+        }
         thead { background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; }
-        th { padding: 18px 12px; text-align: left; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
-        th:not(:first-child):not(:nth-child(2)):not(:nth-child(3)) { text-align: right; }
-        td { padding: 14px 12px; border: 1px solid #e0e0e0; font-size: 15px; }
+        th { 
+          padding: 2px 4px; 
+          text-align: center; 
+          font-weight: 600; 
+          font-size: 9px; 
+          text-transform: uppercase; 
+          border: 1px solid #1976D2;
+          line-height: 1.2;
+        }
+        th.rotate {
+          height: 45px;
+          white-space: nowrap;
+          vertical-align: bottom;
+          padding: 4px 2px;
+        }
+        th.rotate > div {
+          transform: rotate(-45deg);
+          width: 20px;
+          transform-origin: bottom left;
+        }
+        td { padding: 6px 4px; border: 1px solid #e0e0e0; }
         
-        .totals-row { background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%); color: white; font-weight: bold; font-size: 16px; }
-        .totals-row td { border-color: #d81b60; padding: 18px 12px; }
+        .totals-row { 
+          background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%); 
+          color: white; 
+          font-weight: bold; 
+          font-size: 11px;
+        }
+        .totals-row td { border-color: #d81b60; padding: 8px 4px; }
         
-        .summary-section { margin-top: 40px; }
-        .summary-title { font-size: 22px; font-weight: bold; color: #1A1A2E; margin-bottom: 20px; text-align: center; }
-        
-        .summary-table { width: 100%; margin-bottom: 25px; border-collapse: collapse; }
-        .summary-table thead { background: #f5f5f5; }
-        .summary-table th { background-color: #f5f5f5; color: #333; border: 1px solid #ddd; padding: 12px; text-align: left; font-weight: 600; }
-        .summary-table td { border: 1px solid #ddd; padding: 12px; }
+        .summary-section { 
+          margin-top: 20px; 
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 15px;
+        }
+        .summary-table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          font-size: 10px;
+        }
+        .summary-table th { 
+          background-color: #f5f5f5; 
+          color: #333; 
+          border: 1px solid #ddd; 
+          padding: 6px; 
+          text-align: left; 
+          font-weight: 600; 
+        }
+        .summary-table td { border: 1px solid #ddd; padding: 8px; }
         .summary-table .total-row { background-color: #f0f0f0; font-weight: bold; }
         
         .highlight-blue { background-color: #E3F2FD !important; }
         .highlight-purple { background-color: #F3E5F5 !important; }
         .highlight-orange { background-color: #FFF3E0 !important; }
         
-        .final-balance-section { margin-top: 30px; padding: 25px; background: #f8f9fa; border-radius: 15px; border-left: 5px solid #2196F3; }
-        .final-balance-title { font-size: 20px; font-weight: bold; color: #1A1A2E; margin-bottom: 15px; }
-        .balance-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e0e0e0; }
-        .balance-row.final { border-top: 3px solid #2196F3; border-bottom: none; padding-top: 20px; margin-top: 15px; font-size: 18px; font-weight: bold; }
+        .final-balance-section { 
+          margin-top: 20px; 
+          padding: 15px; 
+          background: #f8f9fa; 
+          border-radius: 10px; 
+          border-left: 5px solid #2196F3; 
+        }
+        .final-balance-title { font-size: 16px; font-weight: bold; color: #1A1A2E; margin-bottom: 10px; }
+        .balance-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 10px;
+        }
+        .balance-item {
+          background: white;
+          padding: 10px;
+          border-radius: 8px;
+          text-align: center;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .balance-label { font-size: 10px; color: #666; margin-bottom: 5px; }
+        .balance-value { font-size: 18px; font-weight: bold; }
         
-        .footer { margin-top: 50px; text-align: center; color: #999; font-size: 12px; padding-top: 20px; border-top: 2px solid #e0e0e0; }
-        @media print { body { padding: 20px; } }
+        .footer { 
+          margin-top: 30px; 
+          text-align: center; 
+          color: #999; 
+          font-size: 9px; 
+          padding-top: 15px; 
+          border-top: 2px solid #e0e0e0; 
+        }
+        @media print { 
+          body { padding: 10px; }
+          .info-box, .summary-section { page-break-inside: avoid; }
+        }
       </style>
     </head>
     <body>
       <div class="header">
-        <h1>📊 Reporte Mensual de Tesorería</h1>
-        <div class="subtitle">IASDMR - Iglesia Adventista</div>
+        <h1>📊 Reporte Detallado de Tesorería</h1>
+        <div class="subtitle">IASDMR - Iglesia Adventista del Séptimo Día</div>
         <div class="period">Período: ${startDate} al ${endDate}</div>
       </div>
 
-      <div class="info-box">
-        <h2>💰 Resumen del Período</h2>
-        <div class="info-grid">
-          <div class="info-item">
-            <div class="info-label">Saldo Inicial</div>
-            <div class="info-value">$${reportData.saldoInicial.toFixed(2)}</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Total Recibos</div>
-            <div class="info-value">${reportData.receipts.length}</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Total Iglesia</div>
-            <div class="info-value">$${reportData.subtotales.iglesia.total.toFixed(2)}</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Saldo Final</div>
-            <div class="info-value">$${reportData.subtotales.saldoIglesia.toFixed(2)}</div>
-          </div>
-        </div>
-      </div>
-
-      <h2 style="text-align: center; margin: 30px 0 20px; color: #1A1A2E;">📋 Detalle de Recibos</h2>
+      <h2 style="text-align: center; margin: 15px 0 10px; color: #1A1A2E; font-size: 16px;">📋 Detalle Completo de Recibos</h2>
       <table>
         <thead>
           <tr>
-            <th>Fecha</th>
-            <th>Nombre</th>
-            <th>Iglesia</th>
-            <th>Diezmo</th>
-            <th>Agradecimiento</th>
-            <th>Cultos</th>
-            <th>Escuela Sabática</th>
-            <th>Total</th>
+            <th rowspan="2" style="vertical-align: middle;">Fecha</th>
+            <th rowspan="2" style="vertical-align: middle;">Nombre</th>
+            <th rowspan="2" style="vertical-align: middle;">Iglesia</th>
+            <th colspan="18" style="background: #1565C0;">Rubros</th>
+            <th rowspan="2" style="vertical-align: middle; background: #0D47A1;">Total</th>
+          </tr>
+          <tr>
+            <th class="rotate"><div>Primicia</div></th>
+            <th class="rotate"><div>Diezmo</div></th>
+            <th class="rotate"><div>Pobres</div></th>
+            <th class="rotate"><div>Agradec.</div></th>
+            <th class="rotate"><div>E. Sabática</div></th>
+            <th class="rotate"><div>Jóvenes</div></th>
+            <th class="rotate"><div>Adolesc.</div></th>
+            <th class="rotate"><div>Niños</div></th>
+            <th class="rotate"><div>Educación</div></th>
+            <th class="rotate"><div>Salud</div></th>
+            <th class="rotate"><div>O. Misionera</div></th>
+            <th class="rotate"><div>Música</div></th>
+            <th class="rotate"><div>Renueva</div></th>
+            <th class="rotate"><div>1er Sábado</div></th>
+            <th class="rotate"><div>S. Oración</div></th>
+            <th class="rotate"><div>M. Extranjera</div></th>
+            <th class="rotate"><div>Construcción</div></th>
+            <th class="rotate"><div>Cultos</div></th>
           </tr>
         </thead>
         <tbody>
-          ${receiptsTableRows || '<tr><td colspan="8" style="text-align: center; padding: 20px;">No hay recibos en este período</td></tr>'}
+          ${receiptsTableRows || '<tr><td colspan="22" style="text-align: center; padding: 20px;">No hay recibos en este período</td></tr>'}
           <tr class="totals-row">
             <td colspan="3" style="text-align: right; font-weight: bold;">TOTALES:</td>
+            <td style="text-align: right;">${reportData.totales.primicia.toFixed(2)}</td>
             <td style="text-align: right;">${reportData.totales.diezmo.toFixed(2)}</td>
+            <td style="text-align: right;">${reportData.totales.pobres.toFixed(2)}</td>
             <td style="text-align: right;">${reportData.totales.agradecimiento.toFixed(2)}</td>
-            <td style="text-align: right;">${reportData.totales.cultos.toFixed(2)}</td>
             <td style="text-align: right;">${reportData.totales.escuelaSabatica.toFixed(2)}</td>
-            <td style="text-align: right;">${(reportData.totales.diezmo + reportData.totales.agradecimiento + reportData.totales.cultos + reportData.totales.escuelaSabatica).toFixed(2)}</td>
+            <td style="text-align: right;">${reportData.totales.jovenes.toFixed(2)}</td>
+            <td style="text-align: right;">${reportData.totales.adolescentes.toFixed(2)}</td>
+            <td style="text-align: right;">${reportData.totales.ninos.toFixed(2)}</td>
+            <td style="text-align: right;">${reportData.totales.educacion.toFixed(2)}</td>
+            <td style="text-align: right;">${reportData.totales.salud.toFixed(2)}</td>
+            <td style="text-align: right;">${reportData.totales.obraMisionera.toFixed(2)}</td>
+            <td style="text-align: right;">${reportData.totales.musica.toFixed(2)}</td>
+            <td style="text-align: right;">${reportData.totales.renuevaRadio.toFixed(2)}</td>
+            <td style="text-align: right;">${reportData.totales.primerSabado.toFixed(2)}</td>
+            <td style="text-align: right;">${reportData.totales.semanaOracion.toFixed(2)}</td>
+            <td style="text-align: right;">${reportData.totales.misionExtranj.toFixed(2)}</td>
+            <td style="text-align: right;">${reportData.totales.construccion.toFixed(2)}</td>
+            <td style="text-align: right;">${reportData.totales.cultos.toFixed(2)}</td>
+            <td style="text-align: right; font-size: 12px;">${(
+              reportData.totales.primicia + reportData.totales.diezmo + reportData.totales.pobres + 
+              reportData.totales.agradecimiento + reportData.totales.escuelaSabatica + reportData.totales.jovenes + 
+              reportData.totales.adolescentes + reportData.totales.ninos + reportData.totales.educacion + 
+              reportData.totales.salud + reportData.totales.obraMisionera + reportData.totales.musica + 
+              reportData.totales.renuevaRadio + reportData.totales.primerSabado + reportData.totales.semanaOracion + 
+              reportData.totales.misionExtranj + reportData.totales.construccion + reportData.totales.cultos
+            ).toFixed(2)}</td>
           </tr>
         </tbody>
       </table>
 
-      <div class="summary-section">
-        <div class="summary-title">📈 Desglose de Cálculos</div>
+      <h2 style="text-align: center; margin: 20px 0 10px; color: #1A1A2E; font-size: 16px;">📊 Cálculo de Subtotales por Rubro</h2>
+      <table style="margin-bottom: 30px;">
+        <tbody>
+          <!-- SUBTOTAL ASOCIACIÓN -->
+          <tr style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); font-weight: bold;">
+            <td colspan="3" style="padding: 10px; border: 1px solid #90CAF9; font-size: 11px;">SUBTOTAL ASOCIACIÓN</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.primicia.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.diezmo.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.pobres.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.agradecimiento.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.escuelaSabatica.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.jovenes.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.adolescentes.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.ninos.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.educacion.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.salud.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.obraMisionera.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.musica.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.renuevaRadio.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.primerSabado.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.semanaOracion.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.misionExtranj.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #90CAF9; padding: 6px; text-align: right; font-weight: bold; font-size: 11px; background: #E3F2FD;">${reportData.subtotales.asociacion.total.toFixed(2)}</td>
+          </tr>
+
+          <!-- SUBTOTAL IGLESIA -->
+          <tr style="background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%); font-weight: bold;">
+            <td colspan="3" style="padding: 10px; border: 1px solid #CE93D8; font-size: 11px;">SUBTOTAL IGLESIA</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.pobres.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.agradecimiento.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.escuelaSabatica.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.jovenes.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.adolescentes.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.ninos.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.educacion.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.salud.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.obraMisionera.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.musica.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.construccion.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.cultos.toFixed(2)}</td>
+            <td style="border: 1px solid #CE93D8; padding: 6px; text-align: right; font-weight: bold; font-size: 11px; background: #F3E5F5;">${reportData.subtotales.iglesia.total.toFixed(2)}</td>
+          </tr>
+
+          <!-- SUBTOTAL OTROS -->
+          <tr style="background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); font-weight: bold;">
+            <td colspan="3" style="padding: 10px; border: 1px solid #FFB74D; font-size: 11px;">SUBTOTAL OTROS</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.otros.pobres.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.otros.agradecimiento.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.otros.escuelaSabatica.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.otros.jovenes.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.otros.adolescentes.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.otros.ninos.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.otros.educacion.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.otros.salud.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.otros.obraMisionera.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.otros.musica.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.otros.construccion.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.otros.cultos.toFixed(2)}</td>
+            <td style="border: 1px solid #FFB74D; padding: 6px; text-align: right; font-weight: bold; font-size: 11px; background: #FFF3E0;">${reportData.subtotales.otros.total.toFixed(2)}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- SECCIÓN: EGRESOS Y BALANCE FINAL (50/50) -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
         
-        <table class="summary-table">
-          <thead>
-            <tr>
-              <th colspan="2" class="highlight-blue">SUBTOTAL ASOCIACIÓN</th>
-            </tr>
-          </thead>
-          <tbody class="highlight-blue">
-            <tr><td>Diezmo (100%)</td><td style="text-align: right; font-weight: bold;">${reportData.subtotales.asociacion.diezmo.toFixed(2)}</td></tr>
-            <tr><td>Agradecimiento (50%)</td><td style="text-align: right; font-weight: bold;">${reportData.subtotales.asociacion.agradecimiento.toFixed(2)}</td></tr>
-            <tr><td>Escuela Sabática (50%)</td><td style="text-align: right; font-weight: bold;">${reportData.subtotales.asociacion.escuelaSabatica.toFixed(2)}</td></tr>
-            <tr class="total-row"><td>TOTAL ASOCIACIÓN</td><td style="text-align: right;">${reportData.subtotales.asociacion.total.toFixed(2)}</td></tr>
-          </tbody>
-        </table>
-
-        <table class="summary-table">
-          <thead>
-            <tr>
-              <th colspan="2" class="highlight-purple">SUBTOTAL IGLESIA</th>
-            </tr>
-          </thead>
-          <tbody class="highlight-purple">
-            <tr><td>Agradecimiento (45%)</td><td style="text-align: right; font-weight: bold;">${reportData.subtotales.iglesia.agradecimiento.toFixed(2)}</td></tr>
-            <tr><td>Escuela Sabática (45%)</td><td style="text-align: right; font-weight: bold;">${reportData.subtotales.iglesia.escuelaSabatica.toFixed(2)}</td></tr>
-            <tr><td>Cultos (90%)</td><td style="text-align: right; font-weight: bold;">${reportData.subtotales.iglesia.cultos.toFixed(2)}</td></tr>
-            <tr class="total-row"><td>TOTAL IGLESIA</td><td style="text-align: right;">${reportData.subtotales.iglesia.total.toFixed(2)}</td></tr>
-          </tbody>
-        </table>
-
-        <table class="summary-table">
-          <thead>
-            <tr>
-              <th colspan="2" class="highlight-orange">SUBTOTAL OTROS (5-10%)</th>
-            </tr>
-          </thead>
-          <tbody class="highlight-orange">
-            <tr><td>Agradecimiento (5%)</td><td style="text-align: right; font-weight: bold;">${reportData.subtotales.otros.agradecimiento.toFixed(2)}</td></tr>
-            <tr><td>Escuela Sabática (5%)</td><td style="text-align: right; font-weight: bold;">${reportData.subtotales.otros.escuelaSabatica.toFixed(2)}</td></tr>
-            <tr><td>Cultos (10%)</td><td style="text-align: right; font-weight: bold;">${reportData.subtotales.otros.cultos.toFixed(2)}</td></tr>
-            <tr class="total-row"><td>TOTAL OTROS</td><td style="text-align: right;">${reportData.subtotales.otros.total.toFixed(2)}</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="final-balance-section">
-        <div class="final-balance-title">🎯 Balance Final (Arqueo)</div>
-        <div class="balance-row">
-          <span>📊 Saldo Inicial:</span>
-          <span style="color: #1976D2; font-weight: bold;">$${reportData.saldoInicial.toFixed(2)}</span>
+        <!-- TABLA DE EGRESOS (Izquierda) -->
+        <div>
+          <h2 style="text-align: center; margin-bottom: 15px; color: #F44336; font-size: 16px;">💸 Detalle de Egresos</h2>
+          <table style="width: 100%; font-size: 10px;">
+            <thead style="background: linear-gradient(135deg, #F44336 0%, #D32F2F 100%);">
+              <tr>
+                <th style="padding: 10px 8px; text-align: left; color: white; border: 1px solid #D32F2F;">Fecha</th>
+                <th style="padding: 10px 8px; text-align: left; color: white; border: 1px solid #D32F2F;">Descripción</th>
+                <th style="padding: 10px 8px; text-align: right; color: white; border: 1px solid #D32F2F;">Monto</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${reportData.expenses && reportData.expenses.length > 0
+                ? reportData.expenses.map((expense, index) => `
+                  <tr style="${index % 2 === 0 ? 'background-color: #fff5f5;' : 'background-color: #ffffff;'}">
+                    <td style="border: 1px solid #ddd; padding: 8px; font-size: 10px;">${expense.fecha}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; font-size: 10px;">${expense.descripcion}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right; font-size: 10px; font-weight: bold; color: #F44336;">$${expense.monto.toFixed(2)}</td>
+                  </tr>
+                `).join('')
+                : '<tr><td colspan="3" style="text-align: center; padding: 20px; border: 1px solid #ddd; color: #999;">No hay egresos en este período</td></tr>'
+              }
+              <tr style="background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%); color: white; font-weight: bold;">
+                <td colspan="2" style="padding: 12px 8px; text-align: right; border: 1px solid #D32F2F; font-size: 11px;">TOTAL EGRESOS:</td>
+                <td style="padding: 12px 8px; text-align: right; border: 1px solid #D32F2F; font-size: 12px;">$${reportData.subtotales.totalEgresos.toFixed(2)}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div class="balance-row">
-          <span style="color: #4CAF50;">+ Total Iglesia:</span>
-          <span style="color: #4CAF50; font-weight: bold;">$${reportData.subtotales.iglesia.total.toFixed(2)}</span>
-        </div>
-        <div class="balance-row">
-          <span style="color: #F44336;">- Total Egresos:</span>
-          <span style="color: #F44336; font-weight: bold;">$${reportData.subtotales.totalEgresos.toFixed(2)}</span>
-        </div>
-        <div class="balance-row final">
-          <span>🎯 Saldo Final:</span>
-          <span style="color: ${reportData.subtotales.saldoIglesia >= 0 ? '#4CAF50' : '#F44336'};">$${reportData.subtotales.saldoIglesia.toFixed(2)}</span>
+
+        <!-- BALANCE FINAL (Derecha) -->
+        <div>
+          <h2 style="text-align: center; margin-bottom: 15px; color: #4CAF50; font-size: 16px;">🎯 Balance Final del Período</h2>
+          <div style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); border-radius: 15px; padding: 20px; border: 3px solid #4CAF50;">
+            
+            <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 12px; color: #666; font-weight: 600;">📊 Saldo Inicial:</span>
+                <span style="font-size: 18px; font-weight: bold; color: #1976D2;">$${reportData.saldoInicial.toFixed(2)}</span>
+              </div>
+              <div style="border-bottom: 2px dashed #E0E0E0;"></div>
+            </div>
+
+            <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 12px; color: #4CAF50; font-weight: 600;">➕ Total Iglesia:</span>
+                <span style="font-size: 18px; font-weight: bold; color: #4CAF50;">$${reportData.subtotales.iglesia.total.toFixed(2)}</span>
+              </div>
+              <div style="font-size: 9px; color: #999; text-align: right;">Ingresos del período</div>
+            </div>
+
+            <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 12px; color: #F44336; font-weight: 600;">➖ Total Egresos:</span>
+                <span style="font-size: 18px; font-weight: bold; color: #F44336;">$${reportData.subtotales.totalEgresos.toFixed(2)}</span>
+              </div>
+              <div style="font-size: 9px; color: #999; text-align: right;">Gastos del período</div>
+            </div>
+
+            <div style="background: ${reportData.subtotales.saldoIglesia >= 0 ? 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)' : 'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)'}; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-size: 14px; color: white; font-weight: 700; margin-bottom: 5px;">🎯 SALDO FINAL</div>
+                  <div style="font-size: 9px; color: rgba(255,255,255,0.8);">Nuevo Saldo Inicial</div>
+                </div>
+                <div style="font-size: 28px; font-weight: 900; color: white;">$${reportData.subtotales.saldoIglesia.toFixed(2)}</div>
+              </div>
+            </div>
+
+            <div style="margin-top: 15px; padding: 12px; background: rgba(255,255,255,0.5); border-radius: 8px; border-left: 4px solid #FF9800;">
+              <div style="font-size: 9px; color: #E65100; line-height: 1.5;">
+                <strong>ℹ️ Nota:</strong> Este saldo final se convertirá automáticamente en el Saldo Inicial del próximo arqueo.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="footer">
-        <p>Generado el ${new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-        <p>Sistema de Tesorería IASDMR</p>
+        <p>Generado el ${new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+        <p>Sistema de Tesorería IASDMR - Iglesia Adventista del Séptimo Día</p>
       </div>
     </body>
     </html>

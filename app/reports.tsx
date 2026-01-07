@@ -76,7 +76,11 @@ export default function ReportsScreen() {
   const handleDownloadMonthlyPdf = async () => {
     try {
       setIsGeneratingPdf(true);
-      const html = generateMonthlyPdfHtml(reportData, startDate, endDate);
+      const html = generateMonthlyPdfHtml(
+        { ...reportData, expenses: reportData.expenses }, // ✅ Pasar expenses
+        startDate, 
+        endDate
+      );
       
       const { uri } = await Print.printToFileAsync({ 
         html,
