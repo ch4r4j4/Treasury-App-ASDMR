@@ -84,23 +84,24 @@ export default function NewExpenseScreen() {
               </View>
             </View>
 
-            <View style={styles.totalContainer}>
-              <Text style={styles.totalLabel}>Total a Egresar</Text>
+           
+          </View>
+        </ScrollView>
+        <View style={styles.footer}>
+          <View style={styles.totalContainer}>
+            <Text style={styles.footerSaveText}>Total             </Text>
               <Text style={styles.totalAmount}>
                 ${(parseFloat(monto) || 0).toFixed(2)}
               </Text>
-            </View>
-
-            <TouchableOpacity 
-              style={styles.saveButton}
-              onPress={handleSave}
-              activeOpacity={0.8}
-            >
-              <Save size={24} color="#FFFFFF" />
-              <Text style={styles.saveButtonText}>Guardar Egreso</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+          </View> 
+          <TouchableOpacity 
+            style={styles.footerSaveButton}
+            onPress={handleSave}
+            activeOpacity={0.8}
+          >
+            <Save size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 8,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
@@ -182,12 +183,12 @@ const styles = StyleSheet.create({
   },
   totalContainer: {
     backgroundColor: '#FF5722',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 10,
+    padding: 6,
+    paddingHorizontal: 20,
     flexDirection: 'row' as const,
     justifyContent: 'space-between' as const,
     alignItems: 'center' as const,
-    marginBottom: 20,
   },
   totalLabel: {
     fontSize: 20,
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   totalAmount: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: '800' as const,
     color: '#FFFFFF',
   },
@@ -212,10 +213,44 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  saveButtonText: {
+  footer: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 8,
+  },
+  footerButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 10,
+    backgroundColor: '#F5F7FA',
+  },
+  footerSaveButton: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 10,
+    backgroundColor: '#4CAF50',
+  },
+  footerSaveText: {
     fontSize: 18,
-    fontWeight: '700' as const,
+    fontWeight: '700',
     color: '#FFFFFF',
-    marginLeft: 12,
+    marginRight: 4
   },
 });

@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
-import { IncomeReceipt, Expense, SubtotalCalculations, Rubros, TreasuryBalance, Arqueo } from '@/types/treasury';
+import { IncomeReceipt, Expense, SubtotalCalculations, Rubros, TreasuryBalance, Arqueo, ChurchConfig } from '@/types/treasury';
 
 const RECEIPTS_KEY = '@treasury_receipts';
 const EXPENSES_KEY = '@treasury_expenses';
 const BALANCE_KEY = '@treasury_balance';
 const ARQUEOS_KEY = '@treasury_arqueos';
+const CHURCH_CONFIG_KEY = '@treasury_church_config';
 
 export const [TreasuryProvider, useTreasury] = createContextHook(() => {
   const [receipts, setReceipts] = useState<IncomeReceipt[]>([]);
@@ -14,6 +15,7 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
   const [balances, setBalances] = useState<TreasuryBalance[]>([]);
   const [arqueos, setArqueos] = useState<Arqueo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [churchConfig, setChurchConfig] = useState<ChurchConfig>({ nombre: '' });
 
   useEffect(() => {
     loadData();
@@ -21,11 +23,12 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
 
   const loadData = async () => {
     try {
-      const [receiptsData, expensesData, balancesData, arqueosData] = await Promise.all([
+      const [receiptsData, expensesData, balancesData, arqueosData, churchConfigData] = await Promise.all([
         AsyncStorage.getItem(RECEIPTS_KEY),
         AsyncStorage.getItem(EXPENSES_KEY),
         AsyncStorage.getItem(BALANCE_KEY),
         AsyncStorage.getItem(ARQUEOS_KEY),
+        AsyncStorage.getItem(CHURCH_CONFIG_KEY)
       ]);
 
       if (receiptsData) {
@@ -40,12 +43,21 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
       if (arqueosData) {
         setArqueos(JSON.parse(arqueosData));
       }
+       if (churchConfigData) {
+      setChurchConfig(JSON.parse(churchConfigData));
+    }
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const setChurchName = async (nombre: string) => {
+    const config: ChurchConfig = { nombre };
+    setChurchConfig(config);
+    await AsyncStorage.setItem(CHURCH_CONFIG_KEY, JSON.stringify(config));
+}
 
   const addReceipt = async (receipt: Omit<IncomeReceipt, 'id'>) => {
     const newReceipt: IncomeReceipt = {
@@ -229,6 +241,7 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
     expenses,
     balances,
     arqueos,
+    churchConfig,
     isLoading,
     addReceipt,
     addExpense,
@@ -241,6 +254,7 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
     getUltimoArqueo,
     deleteArqueo, 
     getArqueosOrdenados,
+    setChurchName,
   };
 });
 

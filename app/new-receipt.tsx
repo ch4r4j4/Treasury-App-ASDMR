@@ -8,10 +8,10 @@ import DatePickerInput from '@/components/DatePickerInput';
 
 export default function NewReceiptScreen() {
   const router = useRouter();
-  const { addReceipt } = useTreasury();
+  const { addReceipt, churchConfig } = useTreasury();
 
   const [nombre, setNombre] = useState('');
-  const [iglesia, setIglesia] = useState('');
+  const [iglesia, setIglesia] = useState(churchConfig.nombre || '');
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [primicia, setPrimicia] = useState('');
   const [diezmo, setDiezmo] = useState('');
@@ -109,7 +109,8 @@ export default function NewReceiptScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ArrowLeft size={24} color="#1A1A2E" />
           </TouchableOpacity>
-          <Text style={styles.title}>Nuevo Ingreso</Text>
+          <Text style={styles.sectionTitleSup}>Nuevo Ingreso</Text>
+            
           <View style={{ width: 40 }} />
         </View>
 
@@ -119,36 +120,33 @@ export default function NewReceiptScreen() {
               <Text style={styles.sectionTitle}>Información General</Text>
               
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Nombre</Text>
                 <TextInput
                   style={styles.input}
                   value={nombre}
                   onChangeText={setNombre}
-                  placeholder="Nombre del donante"
+                  placeholder="Nombre"
                   placeholderTextColor="#999"
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Iglesia</Text>
                 <TextInput
                   style={styles.input}
                   value={iglesia}
                   onChangeText={setIglesia}
-                  placeholder="Nombre de la iglesia"
+                  placeholder="Iglesia"
                   placeholderTextColor="#999"
                 />
               </View>
 
               <DatePickerInput
-                label="Fecha"
+                label=""
                 value={fecha}
                 onChangeDate={setFecha}
               />
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Rubros</Text>
               
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Primicia</Text>
@@ -366,9 +364,11 @@ export default function NewReceiptScreen() {
                 />
               </View>
             </View>
-
-            <View style={styles.totalContainer}>
-              <Text style={styles.totalLabel}>Total</Text>
+          </View>
+        </ScrollView>
+        <View style={styles.footer}>
+          <View style={styles.totalContainer}>
+            <Text style={styles.footerSaveText}>Total             </Text>
               <Text style={styles.totalAmount}>
                 ${(
                   (parseFloat(primicia) || 0) +
@@ -391,18 +391,15 @@ export default function NewReceiptScreen() {
                   (parseFloat(construccion) || 0)
                 ).toFixed(2)}
               </Text>
-            </View>
-
-            <TouchableOpacity 
-              style={styles.saveButton}
-              onPress={handleSave}
-              activeOpacity={0.8}
-            >
-              <Save size={24} color="#FFFFFF" />
-              <Text style={styles.saveButtonText}>Guardar Recibo</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+              </View> 
+          <TouchableOpacity 
+            style={styles.footerSaveButton}
+            onPress={handleSave}
+            activeOpacity={0.8}
+          >
+            <Save size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -421,7 +418,7 @@ const styles = StyleSheet.create({
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 6,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
@@ -446,8 +443,10 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    padding: 15,
+    paddingVertical: 8,
+    paddingBottom: 8,
+    marginBottom: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -460,6 +459,12 @@ const styles = StyleSheet.create({
     color: '#1A1A2E',
     marginBottom: 16,
   },
+  sectionTitleSup: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: '#1A1A2E',
+    marginBottom: 0,
+  },
   inputGroup: {
     marginBottom: 16,
   },
@@ -467,12 +472,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600' as const,
     color: '#666',
-    marginBottom: 8,
+    marginBottom: 2,
   },
   input: {
     backgroundColor: '#F5F7FA',
     borderRadius: 12,
-    padding: 16,
+    padding: 10,
     fontSize: 16,
     color: '#1A1A2E',
     borderWidth: 1,
@@ -480,12 +485,12 @@ const styles = StyleSheet.create({
   },
   totalContainer: {
     backgroundColor: '#2196F3',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 12,
+    padding: 6,
+    paddingHorizontal: 20,
     flexDirection: 'row' as const,
     justifyContent: 'space-between' as const,
     alignItems: 'center' as const,
-    marginBottom: 20,
   },
   totalLabel: {
     fontSize: 20,
@@ -493,14 +498,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   totalAmount: {
-    fontSize: 28,
-    fontWeight: '800' as const,
+    fontSize: 20,
+    fontWeight: '700' as const,
     color: '#FFFFFF',
   },
   saveButton: {
     backgroundColor: '#4CAF50',
-    borderRadius: 16,
-    padding: 18,
+    borderRadius: 8,
+    padding: 8,
     flexDirection: 'row' as const,
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
@@ -509,11 +514,46 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
+    marginLeft: 5,
   },
-  saveButtonText: {
+  footer: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 8,
+  },
+  footerButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#F5F7FA',
+  },
+  footerSaveButton: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#4CAF50',
+  },
+  footerSaveText: {
     fontSize: 18,
-    fontWeight: '700' as const,
+    fontWeight: '700',
     color: '#FFFFFF',
-    marginLeft: 12,
+    marginRight: 4
   },
 });

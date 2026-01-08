@@ -1,5 +1,3 @@
-import { Construction } from "lucide-react-native";
-
 export interface Rubros {
     primicia: number;
     diezmo: number;
@@ -104,7 +102,7 @@ export interface Rubros {
     periodo: string; // formato: 'YYYY-MM'
   }
   
-  // ✨ NUEVO: Metadata del Arqueo
+  // Metadata del Arqueo
 export interface Arqueo {
   id: string;
   startDate: string; // 'YYYY-MM-DD'
@@ -117,5 +115,10 @@ export interface Arqueo {
   totalRecibos: number; // cantidad de recibos
   totalGastos: number;  // cantidad de gastos
   fechaCreacion: string; // ISO timestamp
-  descripcion?: string; // opcional: "Arqueo de Enero", etc.
+  descripcion?: string; 
+}
+
+export interface ChurchConfig {
+  nombre: string;
+  periodo?: string; 
 }

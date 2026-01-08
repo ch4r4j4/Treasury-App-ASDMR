@@ -32,16 +32,15 @@ export default function HomeScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <Text style={styles.title}>Tesorería</Text>
-            <Text style={styles.subtitle}>Gestión Eclesiástica</Text>
+            <Text style={styles.subtitle}>Tesoreria</Text>
           </View>
 
           <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Resumen del Mes</Text>
+            <Text style={styles.summaryTitle}>Resumen</Text>
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>
                 <View style={[styles.iconCircle, { backgroundColor: '#E8F5E9' }]}>
-                  <TrendingUp size={24} color="#4CAF50" />
+                  <TrendingUp size={20} color="#4CAF50" />
                 </View>
                 <Text style={styles.summaryLabel}>Ingresos</Text>
                 <Text style={styles.summaryAmount}>${totalIngresos.toFixed(2)}</Text>
@@ -51,7 +50,7 @@ export default function HomeScreen() {
               
               <View style={styles.summaryItem}>
                 <View style={[styles.iconCircle, { backgroundColor: '#FFEBEE' }]}>
-                  <TrendingDown size={24} color="#F44336" />
+                  <TrendingDown size={20} color="#F44336" />
                 </View>
                 <Text style={styles.summaryLabel}>Egresos</Text>
                 <Text style={styles.summaryAmount}>${totalEgresos.toFixed(2)}</Text>
@@ -156,9 +155,9 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 24,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 12,
   },
   title: {
     fontSize: 36,
@@ -175,8 +174,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 24,
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    padding: 24,
-    marginBottom: 32,
+    padding: 12,
+    marginBottom: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -192,7 +191,7 @@ const styles = StyleSheet.create({
   summaryRow: {
     flexDirection: 'row' as const,
     justifyContent: 'space-between' as const,
-    marginBottom: 24,
+    marginBottom: 12,
   },
   summaryItem: {
     flex: 1,
@@ -222,7 +221,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   balanceContainer: {
-    paddingTop: 20,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
     alignItems: 'center' as const,
@@ -230,7 +229,7 @@ const styles = StyleSheet.create({
   balanceLabel: {
     fontSize: 15,
     color: '#666',
-    marginBottom: 6,
+    marginBottom: 3,
   },
   balanceAmount: {
     fontSize: 32,
@@ -250,7 +249,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     borderRadius: 16,
-    padding: 20,
+    padding: 8,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

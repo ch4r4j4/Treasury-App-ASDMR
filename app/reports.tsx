@@ -16,7 +16,9 @@ export default function ReportsScreen() {
      getSaldoInicialPorPeriodo, 
      receipts, expenses, guardarArqueo, 
      getArqueosOrdenados, 
-     deleteArqueo 
+     deleteArqueo,
+     churchConfig, 
+     setChurchName,
     } = useTreasury();
   
   const today = new Date();
@@ -75,19 +77,20 @@ export default function ReportsScreen() {
   };
 
   const handleDownloadMonthlyPdf = async () => {
-    try {
-      setIsGeneratingPdf(true);
-      const html = generateMonthlyPdfHtml(
-        { ...reportData, expenses: reportData.expenses }, // ✅ Pasar expenses
-        startDate, 
-        endDate
-      );
-      
-      const { uri } = await Print.printToFileAsync({ 
-        html,
-        width: 612,
-        height: 792,
-      });
+  try {
+    setIsGeneratingPdf(true);
+    const html = generateMonthlyPdfHtml(
+      { ...reportData, expenses: reportData.expenses },
+      startDate, 
+      endDate,
+      churchConfig.nombre || 'Iglesia' // ✅ Agrega este parámetro
+    );
+    
+    const { uri } = await Print.printToFileAsync({ 
+      html,
+      width: 612,
+      height: 792,
+    });
 
       if (Platform.OS === 'web') {
         const link = document.createElement('a');
@@ -241,18 +244,6 @@ export default function ReportsScreen() {
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
-            {/* Saldo Inicial Card */}
-            <View style={styles.saldoCard}>
-              <Text style={styles.saldoLabel}>Saldo Inicial del Período</Text>
-              <Text style={styles.saldoAmount}>${currentSaldo.toFixed(2)}</Text>
-              <TouchableOpacity 
-                style={styles.configureSaldoButton}
-                onPress={() => setShowSaldoModal(true)}
-              >
-                <Settings size={16} color="#9C27B0" />
-                <Text style={styles.configureSaldoText}>Configurar</Text>
-              </TouchableOpacity>
-            </View>
 
             {/* Date Range Selection */}
             <View style={styles.dateSection}>
@@ -313,7 +304,7 @@ export default function ReportsScreen() {
               <View style={styles.balanceCard}>
                 <View style={[styles.balanceRow, { backgroundColor: '#E3F2FD', padding: 16, borderRadius: 12, marginBottom: 8 }]}>
                   <Text style={[styles.balanceLabel, { color: '#1976D2', fontWeight: '700' }]}>
-                    📊 Saldo Inicial (Arqueo Anterior)
+                    📊 Saldo Anterior
                   </Text>
                   <Text style={[styles.balanceAmount, { color: '#1976D2' }]}>
                     ${reportData.saldoInicial.toFixed(2)}
@@ -363,12 +354,6 @@ export default function ReportsScreen() {
                 <Save size={20} color="#FFFFFF" />
                 <Text style={styles.saveArqueoText}>Guardar Arqueo</Text>
               </TouchableOpacity>
-
-              <View style={styles.infoBox}>
-                <Text style={styles.infoText}>
-                  ℹ️ El Saldo Final de este período se convertirá automáticamente en el Saldo Inicial del siguiente arqueo.
-                </Text>
-              </View>
             </View>
 
             {/* Historial de arqueos */}
@@ -430,7 +415,9 @@ export default function ReportsScreen() {
         visible={showSaldoModal}
         onClose={() => setShowSaldoModal(false)}
         onSave={handleSaveSaldo}
+        onSaveChurchName={setChurchName} // ✅ Agrega esto
         currentSaldo={currentSaldo}
+        currentChurchName={churchConfig.nombre} // ✅ Agrega esto
         periodo={periodo}
       />
     </View>
@@ -477,8 +464,6 @@ const styles = StyleSheet.create({
   finalBalanceAmount: { fontSize: 28, fontWeight: '900' },
   saveArqueoButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#4CAF50', padding: 16, borderRadius: 12, marginTop: 16 },
   saveArqueoText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
-  infoBox: { backgroundColor: '#FFF3E0', borderLeftWidth: 4, borderLeftColor: '#FF9800', padding: 16, borderRadius: 12, marginTop: 12 },
-  infoText: { fontSize: 13, color: '#E65100', lineHeight: 20 },
   emptyState: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 40, alignItems: 'center' },
   emptyText: { fontSize: 15, color: '#999', fontWeight: '600', marginBottom: 8 },
   emptySubtext: { fontSize: 13, color: '#CCC' },

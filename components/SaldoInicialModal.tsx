@@ -6,15 +6,18 @@ import {
   Modal, 
   TouchableOpacity, 
   TextInput, 
-  Alert 
+  Alert,
+  ScrollView
 } from 'react-native';
-import { X, DollarSign } from 'lucide-react-native';
+import { X, DollarSign, Church } from 'lucide-react-native';
 
 interface SaldoInicialModalProps {
   visible: boolean;
   onClose: () => void;
   onSave: (saldo: number) => void;
+  onSaveChurchName: (nombre: string) => void; // ✅ Nuevo
   currentSaldo: number;
+  currentChurchName: string; // ✅ Nuevo
   periodo: string;
 }
 
@@ -22,10 +25,13 @@ export default function SaldoInicialModal({
   visible,
   onClose,
   onSave,
+  onSaveChurchName,
   currentSaldo,
+  currentChurchName,
   periodo,
 }: SaldoInicialModalProps) {
   const [saldo, setSaldo] = useState(currentSaldo.toString());
+  const [churchName, setChurchName] = useState(currentChurchName);
 
   const handleSave = () => {
     const saldoNum = parseFloat(saldo);
@@ -33,7 +39,14 @@ export default function SaldoInicialModal({
       Alert.alert('Error', 'Por favor ingrese un monto válido');
       return;
     }
+    
+    if (!churchName.trim()) {
+      Alert.alert('Error', 'Por favor ingrese el nombre de la iglesia');
+      return;
+    }
+
     onSave(saldoNum);
+    onSaveChurchName(churchName.trim());
     onClose();
   };
 
@@ -46,45 +59,68 @@ export default function SaldoInicialModal({
     >
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Configurar Saldo Inicial</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <X size={24} color="#666" />
-            </TouchableOpacity>
-          </View>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={styles.header}>
+              <Text style={styles.title}>Configuración General</Text>
+              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                <X size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
 
-          <Text style={styles.periodoText}>Período: {periodo}</Text>
+            <Text style={styles.periodoText}>Período: {periodo}</Text>
 
-          <View style={styles.inputContainer}>
-            <DollarSign size={20} color="#9C27B0" style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              value={saldo}
-              onChangeText={setSaldo}
-              keyboardType="decimal-pad"
-              placeholder="0.00"
-              placeholderTextColor="#999"
-            />
-          </View>
+            {/* ✅ NUEVO: Input para nombre de iglesia */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Nombre de la Iglesia</Text>
+              <View style={styles.inputContainer}>
+                <Church size={20} color="#9C27B0" style={styles.icon} />
+                <TextInput
+                  style={styles.textInput}
+                  value={churchName}
+                  onChangeText={setChurchName}
+                  placeholder="Ej: Iglesia Central"
+                  placeholderTextColor="#999"
+                />
+              </View>
+              <Text style={styles.helperText}>
+                Este nombre aparecerá por defecto en los recibos y reportes PDF
+              </Text>
+            </View>
 
-          <Text style={styles.helperText}>
-            Este será el saldo inicial para el período seleccionado. Generalmente es el saldo final del período anterior.
-          </Text>
+            {/* Saldo Inicial */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Saldo Inicial</Text>
+              <View style={styles.inputContainer}>
+                <DollarSign size={20} color="#9C27B0" style={styles.icon} />
+                <TextInput
+                  style={styles.input}
+                  value={saldo}
+                  onChangeText={setSaldo}
+                  keyboardType="decimal-pad"
+                  placeholder="0.00"
+                  placeholderTextColor="#999"
+                />
+              </View>
+              <Text style={styles.helperText}>
+                Este será el saldo inicial para el período seleccionado
+              </Text>
+            </View>
 
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={styles.cancelButton} 
-              onPress={onClose}
-            >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.saveButton} 
-              onPress={handleSave}
-            >
-              <Text style={styles.saveButtonText}>Guardar</Text>
-            </TouchableOpacity>
-          </View>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity 
+                style={styles.cancelButton} 
+                onPress={onClose}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.saveButton} 
+                onPress={handleSave}
+              >
+                <Text style={styles.saveButtonText}>Guardar</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -105,6 +141,7 @@ const styles = StyleSheet.create({
     padding: 24,
     width: '100%',
     maxWidth: 400,
+    maxHeight: '80%',
   },
   header: {
     flexDirection: 'row',
@@ -123,8 +160,18 @@ const styles = StyleSheet.create({
   periodoText: {
     fontSize: 16,
     color: '#666',
-    marginBottom: 20,
+    marginBottom: 24,
     textAlign: 'center',
+    fontWeight: '600',
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A1A2E',
+    marginBottom: 12,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -134,7 +181,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#9C27B0',
     paddingHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 8,
   },
   icon: {
     marginRight: 8,
@@ -146,16 +193,21 @@ const styles = StyleSheet.create({
     color: '#1A1A2E',
     paddingVertical: 16,
   },
+  textInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#1A1A2E',
+    paddingVertical: 16,
+  },
   helperText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#666',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   buttonContainer: {
     flexDirection: 'row',
     gap: 12,
+    marginTop: 8,
   },
   cancelButton: {
     flex: 1,

@@ -6,7 +6,8 @@ import { ReportData } from '@/types/treasury';
 export const generateMonthlyPdfHtml = (
   reportData: ReportData & { saldoInicial: number; totalAsociacionYOtros: number },
   startDate: string,
-  endDate: string
+  endDate: string,
+  churchName: string = 'Iglesia',
 ): string => {
   const receiptsTableRows = reportData.receipts.map((receipt, index) => `
     <tr style="${index % 2 === 0 ? 'background-color: #f9f9f9;' : ''}">
@@ -181,9 +182,8 @@ export const generateMonthlyPdfHtml = (
     </head>
     <body>
       <div class="header">
-        <h1>📊 Reporte Detallado de Tesorería</h1>
-        <div class="subtitle">IASDMR - Iglesia Adventista del Séptimo Día</div>
-        <div class="period">Período: ${startDate} al ${endDate}</div>
+        <div class="subtitle">IASDMR - Iglesia Adventista del Séptimo Día - ${churchName}</div>
+        <div class="period">Arqueo del Período: ${startDate} al ${endDate}</div>
       </div>
 
       <table>
@@ -250,7 +250,6 @@ export const generateMonthlyPdfHtml = (
         </tbody>
       </table>
 
-      <h2 style="text-align: center; margin: 20px 0 10px; color: #1A1A2E; font-size: 16px;">📊 Cálculo de Subtotales por Rubro</h2>
       <table style="margin-bottom: 30px;">
         <tbody>
           <!-- SUBTOTAL ASOCIACIÓN -->
@@ -334,11 +333,11 @@ export const generateMonthlyPdfHtml = (
         <div>
           <h2 style="text-align: center; margin-bottom: 15px; color: #F44336; font-size: 16px;">💸 Detalle de Egresos</h2>
           <table style="width: 100%; font-size: 10px;">
-            <thead style="background: linear-gradient(135deg, #F44336 0%, #D32F2F 100%);">
+            <thead style="background: linear-gradient(135deg, #f07035ff 0%, #f3a476ff 100%);">
               <tr>
-                <th style="padding: 4px 8px; text-align: left; color: white; border: 1px solid #D32F2F;">Fecha</th>
-                <th style="padding: 4px 8px; text-align: left; color: white; border: 1px solid #D32F2F;">Descripción</th>
-                <th style="padding: 4px 8px; text-align: right; color: white; border: 1px solid #D32F2F;">Monto</th>
+                <th style="padding: 4px 8px; text-align: left; color: white; border: 1px solid #f3a476ff;">Fecha</th>
+                <th style="padding: 4px 8px; text-align: left; color: white; border: 1px solid #f3a476ff;">Descripción</th>
+                <th style="padding: 4px 8px; text-align: right; color: white; border: 1px solid #f3a476ff;">Monto</th>
               </tr>
             </thead>
             <tbody>
@@ -470,13 +469,13 @@ export const generateAnnualPdfHtml = (
         .info-value { font-size: 22px; font-weight: bold; }
         
         table { width: 100%; border-collapse: collapse; margin: 30px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden; }
-        thead { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        thead { background: linear-gradient(135deg, #98a6e6ff 0%, #9169b9ff 100%); color: white; }
         th { padding: 18px 12px; text-align: left; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
         th:not(:first-child) { text-align: right; }
         td { padding: 14px 12px; border: 1px solid #e0e0e0; font-size: 15px; }
         
         .totals-row { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; font-weight: bold; font-size: 16px; }
-        .totals-row td { border-color: #d81b60; padding: 18px 12px; }
+        .totals-row td { border-color: #ffccdfff; padding: 18px 12px; }
         
         .summary-section { margin-top: 40px; padding: 30px; background: #f8f9fa; border-radius: 15px; border-left: 5px solid #9C27B0; }
         .summary-title { font-size: 22px; font-weight: bold; color: #1A1A2E; margin-bottom: 20px; }
