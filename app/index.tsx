@@ -63,8 +63,9 @@ export default function HomeScreen() {
               <Text style={[
                 styles.balanceAmount,
                 { color: monthData.subtotales.saldoIglesia >= 0 ? '#4CAF50' : '#F44336' }
+                ///aqui arriba indica el color(ingreso neto) si los ingresos netos son + pues verde, si  - en rojo
               ]}>
-                ${monthData.subtotales.saldoIglesia.toFixed(2)}
+                ${monthData.subtotales.saldoFinalIglesia.toFixed(2)}
               </Text>
             </View>
           </View>

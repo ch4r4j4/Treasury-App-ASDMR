@@ -1,10 +1,10 @@
-import { ReportData, Expense } from '@/types/treasury';
+import { ReportData } from '@/types/treasury';
 
 // ============================================
 // PLANTILLA HTML - REPORTE MENSUAL COMPLETO
 // ============================================
 export const generateMonthlyPdfHtml = (
-  reportData: ReportData & { saldoInicial: number; expenses: Expense[] },
+  reportData: ReportData & { saldoInicial: number; totalAsociacionYOtros: number },
   startDate: string,
   endDate: string
 ): string => {
@@ -44,7 +44,7 @@ export const generateMonthlyPdfHtml = (
       <style>
         @page {
           size: landscape;
-          margin: 8mm;
+          margin: 4mm;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -56,13 +56,13 @@ export const generateMonthlyPdfHtml = (
         }
         .header { 
           text-align: center; 
-          margin-bottom: 20px; 
+          margin-bottom: 5px; 
           border-bottom: 3px solid #2196F3; 
           padding-bottom: 0px; 
         }
         .header h1 { font-size: 24px; color: #1A1A2E; margin-bottom: 5px; }
         .header .subtitle { font-size: 14px; color: #666; font-weight: 500; }
-        .header .period { font-size: 13px; color: #2196F3; font-weight: 700; margin-top: 5px; }
+        .header .period { font-size: 13px; color: #2196F3; font-weight: 700; margin-top: 0px; }
         
         .info-box { 
           background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); 
@@ -186,7 +186,6 @@ export const generateMonthlyPdfHtml = (
         <div class="period">Período: ${startDate} al ${endDate}</div>
       </div>
 
-      <h2 style="text-align: center; margin: 15px 0 10px; color: #1A1A2E; font-size: 16px;">📋 Detalle Completo de Recibos</h2>
       <table>
         <thead>
           <tr>
@@ -278,30 +277,6 @@ export const generateMonthlyPdfHtml = (
             <td style="border: 1px solid #90CAF9; padding: 6px; text-align: right; font-weight: bold; font-size: 11px; background: #E3F2FD;">${reportData.subtotales.asociacion.total.toFixed(2)}</td>
           </tr>
 
-          <!-- SUBTOTAL IGLESIA -->
-          <tr style="background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%); font-weight: bold;">
-            <td colspan="3" style="padding: 10px; border: 1px solid #CE93D8; font-size: 11px;">SUBTOTAL IGLESIA</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.pobres.toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.agradecimiento.toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.escuelaSabatica.toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.jovenes.toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.adolescentes.toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.ninos.toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.educacion.toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.salud.toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.obraMisionera.toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.musica.toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.construccion.toFixed(2)}</td>
-            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.cultos.toFixed(2)}</td>
-            <td style="border: 1px solid #CE93D8; padding: 6px; text-align: right; font-weight: bold; font-size: 11px; background: #F3E5F5;">${reportData.subtotales.iglesia.total.toFixed(2)}</td>
-          </tr>
-
           <!-- SUBTOTAL OTROS -->
           <tr style="background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); font-weight: bold;">
             <td colspan="3" style="padding: 10px; border: 1px solid #FFB74D; font-size: 11px;">SUBTOTAL OTROS</td>
@@ -325,6 +300,30 @@ export const generateMonthlyPdfHtml = (
             <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.otros.cultos.toFixed(2)}</td>
             <td style="border: 1px solid #FFB74D; padding: 6px; text-align: right; font-weight: bold; font-size: 11px; background: #FFF3E0;">${reportData.subtotales.otros.total.toFixed(2)}</td>
           </tr>
+
+          <!-- SUBTOTAL IGLESIA -->
+          <tr style="background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%); font-weight: bold;">
+            <td colspan="3" style="padding: 10px; border: 1px solid #CE93D8; font-size: 11px;">SUBTOTAL IGLESIA</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.pobres.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.agradecimiento.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.escuelaSabatica.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.jovenes.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.adolescentes.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.ninos.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.educacion.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.salud.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.obraMisionera.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.musica.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.construccion.toFixed(2)}</td>
+            <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.iglesia.cultos.toFixed(2)}</td>
+            <td style="border: 1px solid #CE93D8; padding: 6px; text-align: right; font-weight: bold; font-size: 11px; background: #F3E5F5;">${reportData.subtotales.iglesia.total.toFixed(2)}</td>
+          </tr>
         </tbody>
       </table>
 
@@ -337,25 +336,25 @@ export const generateMonthlyPdfHtml = (
           <table style="width: 100%; font-size: 10px;">
             <thead style="background: linear-gradient(135deg, #F44336 0%, #D32F2F 100%);">
               <tr>
-                <th style="padding: 10px 8px; text-align: left; color: white; border: 1px solid #D32F2F;">Fecha</th>
-                <th style="padding: 10px 8px; text-align: left; color: white; border: 1px solid #D32F2F;">Descripción</th>
-                <th style="padding: 10px 8px; text-align: right; color: white; border: 1px solid #D32F2F;">Monto</th>
+                <th style="padding: 4px 8px; text-align: left; color: white; border: 1px solid #D32F2F;">Fecha</th>
+                <th style="padding: 4px 8px; text-align: left; color: white; border: 1px solid #D32F2F;">Descripción</th>
+                <th style="padding: 4px 8px; text-align: right; color: white; border: 1px solid #D32F2F;">Monto</th>
               </tr>
             </thead>
             <tbody>
               ${reportData.expenses && reportData.expenses.length > 0
                 ? reportData.expenses.map((expense, index) => `
                   <tr style="${index % 2 === 0 ? 'background-color: #fff5f5;' : 'background-color: #ffffff;'}">
-                    <td style="border: 1px solid #ddd; padding: 8px; font-size: 10px;">${expense.fecha}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px; font-size: 10px;">${expense.descripcion}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right; font-size: 10px; font-weight: bold; color: #F44336;">$${expense.monto.toFixed(2)}</td>
+                    <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${expense.fecha}</td>
+                    <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${expense.descripcion}</td>
+                    <td style="border: 1px solid #ddd; padding: 4px; text-align: right; font-size: 10px; font-weight: bold; color: #F44336;">$${expense.monto.toFixed(2)}</td>
                   </tr>
                 `).join('')
                 : '<tr><td colspan="3" style="text-align: center; padding: 20px; border: 1px solid #ddd; color: #999;">No hay egresos en este período</td></tr>'
               }
               <tr style="background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%); color: white; font-weight: bold;">
-                <td colspan="2" style="padding: 12px 8px; text-align: right; border: 1px solid #D32F2F; font-size: 11px;">TOTAL EGRESOS:</td>
-                <td style="padding: 12px 8px; text-align: right; border: 1px solid #D32F2F; font-size: 12px;">$${reportData.subtotales.totalEgresos.toFixed(2)}</td>
+                <td colspan="2" style="padding: 6px 8px; text-align: right; border: 1px solid #D32F2F; font-size: 11px;">TOTAL EGRESOS:</td>
+                <td style="padding: 6px 8px; text-align: right; border: 1px solid #D32F2F; font-size: 12px;">$${reportData.subtotales.totalEgresos.toFixed(2)}</td>
               </tr>
             </tbody>
           </table>
@@ -364,43 +363,46 @@ export const generateMonthlyPdfHtml = (
         <!-- BALANCE FINAL (Derecha) -->
         <div>
           <h2 style="text-align: center; margin-bottom: 15px; color: #4CAF50; font-size: 16px;">🎯 Balance Final del Período</h2>
-          <div style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); border-radius: 15px; padding: 20px; border: 3px solid #4CAF50;">
-            
-            <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <div style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); border-radius: 15px; padding: 8px 15px; border: 3px solid #4CAF50;">
+
+            <div style="background: white; border-radius: 10px; padding: 2px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span style="font-size: 12px; color: #666; font-weight: 600;">📊 Saldo Inicial:</span>
-                <span style="font-size: 18px; font-weight: bold; color: #1976D2;">$${reportData.saldoInicial.toFixed(2)}</span>
+                <div>
+                  <span style="font-size: 10px; color: #666; font-weight: 600;">📊 Asociacion :</span>
+                  <div style="font-size: 9px; color: rgba(255,255,255,0.8);">Subtotal asociacion + diezmo iglesia</div>
+                </div>
+                <span style="font-size: 14px; font-weight: bold; color: #1976D2;">$${reportData.totalAsociacionYOtros.toFixed(2)}</span>
               </div>
-              <div style="border-bottom: 2px dashed #E0E0E0;"></div>
             </div>
 
-            <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="background: white; border-radius: 15px; padding: 2px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span style="font-size: 12px; color: #4CAF50; font-weight: 600;">➕ Total Iglesia:</span>
-                <span style="font-size: 18px; font-weight: bold; color: #4CAF50;">$${reportData.subtotales.iglesia.total.toFixed(2)}</span>
+                <div>
+                  <span style="font-size: 10px; color: #4CAF50; font-weight: 600;">➕ Ingreso Neto Iglesia:</span>
+                  <div style="font-size: 9px; color: rgba(255,255,255,0.8);">Subtotal iglesia - egresos</div>
+                </div>
+                <span style="font-size: 14px; font-weight: bold; color: #4CAF50;">$${reportData.subtotales.saldoIglesia.toFixed(2)}</span>
               </div>
-              <div style="font-size: 9px; color: #999; text-align: right;">Ingresos del período</div>
             </div>
 
-            <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="background: white; border-radius: 15px; padding: 2px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span style="font-size: 12px; color: #F44336; font-weight: 600;">➖ Total Egresos:</span>
-                <span style="font-size: 18px; font-weight: bold; color: #F44336;">$${reportData.subtotales.totalEgresos.toFixed(2)}</span>
+                <span style="font-size: 10px; color: #666; font-weight: 600;">📊 Saldo Anterior:</span>
+                <span style="font-size: 14px; font-weight: bold; color: #1976D2;">$${reportData.saldoInicial.toFixed(2)}</span>
               </div>
-              <div style="font-size: 9px; color: #999; text-align: right;">Gastos del período</div>
             </div>
 
-            <div style="background: ${reportData.subtotales.saldoIglesia >= 0 ? 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)' : 'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)'}; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+            <div style="background: ${reportData.subtotales.saldoIglesia >= 0 ? 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)' : 'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)'}; border-radius: 12px; padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                  <div style="font-size: 14px; color: white; font-weight: 700; margin-bottom: 5px;">🎯 SALDO FINAL</div>
-                  <div style="font-size: 9px; color: rgba(255,255,255,0.8);">Nuevo Saldo Inicial</div>
+                  <div style="font-size: 12px; color: white; font-weight: 700; margin-bottom: 5px;">🎯 SALDO FINAL</div>
+                  <div style="font-size: 9px; color: rgba(255,255,255,0.8);">saldo anterior + Ingreso neto</div>
                 </div>
-                <div style="font-size: 28px; font-weight: 900; color: white;">$${reportData.subtotales.saldoIglesia.toFixed(2)}</div>
+                <div style="font-size: 16px; font-weight: 900; color: white;">$${reportData.subtotales.saldoFinalIglesia.toFixed(2)}</div>
               </div>
             </div>
 
-            <div style="margin-top: 15px; padding: 12px; background: rgba(255,255,255,0.5); border-radius: 8px; border-left: 4px solid #FF9800;">
+            <div style="margin-top: 5px; padding: 3px; background: rgba(255,255,255,0.5); border-radius: 8px; border-left: 4px solid #FF9800;">
               <div style="font-size: 9px; color: #E65100; line-height: 1.5;">
                 <strong>ℹ️ Nota:</strong> Este saldo final se convertirá automáticamente en el Saldo Inicial del próximo arqueo.
               </div>

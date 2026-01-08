@@ -89,6 +89,7 @@ export interface Rubros {
     };
     totalEgresos: number;
     saldoIglesia: number;
+    saldoFinalIglesia: number;
   }
   
   export interface ReportData {
@@ -110,6 +111,7 @@ export interface Arqueo {
   endDate: string;   // 'YYYY-MM-DD'
   saldoInicial: number;
   saldoFinal: number;
+  saldoIglesia: number;
   totalIngresos: number;
   totalEgresos: number;
   totalRecibos: number; // cantidad de recibos

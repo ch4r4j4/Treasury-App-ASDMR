@@ -186,7 +186,8 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
       startDate,
       endDate,
       saldoInicial: reportData.saldoInicial,
-      saldoFinal: reportData.subtotales.saldoIglesia,
+      saldoFinal: reportData.subtotales.saldoFinalIglesia,
+      saldoIglesia: reportData.subtotales.saldoIlgesia,
       totalIngresos: reportData.subtotales.iglesia.total,
       totalEgresos: reportData.subtotales.totalEgresos,
       totalRecibos: reportData.receipts.length,
@@ -350,6 +351,7 @@ export const useFilteredData = (startDate: string, endDate: string) => {
       },
       totalEgresos: 0,
       saldoIglesia: 0,
+      saldoFinalIglesia: 0,
     };
 
     subtotales.asociacion.total =
@@ -405,7 +407,9 @@ export const useFilteredData = (startDate: string, endDate: string) => {
     const saldoInicial = getSaldoInicial(startDate, endDate);
     
     // FÓRMULA CORRECTA: Saldo Final = Saldo Inicial + Total Iglesia - Egresos
-    subtotales.saldoIglesia = saldoInicial + subtotales.iglesia.total - subtotales.totalEgresos;
+    subtotales.saldoFinalIglesia = saldoInicial + subtotales.iglesia.total - subtotales.totalEgresos;
+
+    subtotales.saldoIglesia = subtotales.iglesia.total - subtotales.totalEgresos;
 
     return {
       receipts: filteredReceipts,
