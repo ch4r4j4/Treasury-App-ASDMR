@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Save } from 'lucide-react-native';
 import { useTreasury } from '@/contexts/TreasuryContext';
+import DatePickerInput from '@/components/DatePickerInput';
 
 export default function NewReceiptScreen() {
   const router = useRouter();
@@ -139,16 +140,11 @@ export default function NewReceiptScreen() {
                 />
               </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Fecha</Text>
-                <TextInput
-                  style={styles.input}
-                  value={fecha}
-                  onChangeText={setFecha}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor="#999"
-                />
-              </View>
+              <DatePickerInput
+                label="Fecha"
+                value={fecha}
+                onChangeDate={setFecha}
+              />
             </View>
 
             <View style={styles.section}>

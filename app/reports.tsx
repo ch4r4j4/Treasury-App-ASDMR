@@ -8,6 +8,7 @@ import SaldoInicialModal from '@/components/SaldoInicialModal';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { generateMonthlyPdfHtml, generateAnnualPdfHtml } from '@/utils/pdfTemplates';
+import DatePickerInput from '@/components/DatePickerInput';
 
 export default function ReportsScreen() {
   const router = useRouter();
@@ -260,28 +261,20 @@ export default function ReportsScreen() {
                 <Text style={styles.dateSectionTitle}>Rango de Fechas</Text>
               </View>
               
-              <View style={styles.dateRow}>
-                <View style={styles.dateInputGroup}>
-                  <Text style={styles.dateLabel}>Desde</Text>
-                  <TextInput
-                    style={styles.dateInput}
-                    value={startDate}
-                    onChangeText={setStartDate}
-                    placeholder="YYYY-MM-DD"
-                    placeholderTextColor="#999"
-                  />
-                </View>
+               <View style={styles.dateColumn}>
+                <DatePickerInput
+                  label="Desde"
+                  value={startDate}
+                  onChangeDate={setStartDate}
+                  style={{ marginBottom: 0 }}
+                />
                 
-                <View style={styles.dateInputGroup}>
-                  <Text style={styles.dateLabel}>Hasta</Text>
-                  <TextInput
-                    style={styles.dateInput}
-                    value={endDate}
-                    onChangeText={setEndDate}
-                    placeholder="YYYY-MM-DD"
-                    placeholderTextColor="#999"
-                  />
-                </View>
+                <DatePickerInput
+                  label="Hasta"
+                  value={endDate}
+                  onChangeDate={setEndDate}
+                  style={{ marginBottom: 0 }}
+                />
               </View>
             </View>
 
@@ -461,6 +454,7 @@ const styles = StyleSheet.create({
   dateSection: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
   dateHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   dateSectionTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A2E', marginLeft: 8 },
+  dateColumn: {gap: 12},
   dateRow: { flexDirection: 'row', gap: 12 },
   dateInputGroup: { flex: 1 },
   dateLabel: { fontSize: 14, fontWeight: '600', color: '#666', marginBottom: 8 },
