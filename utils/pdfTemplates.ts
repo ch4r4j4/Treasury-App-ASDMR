@@ -247,12 +247,6 @@ export const generateMonthlyPdfHtml = (
               reportData.totales.misionExtranj + reportData.totales.construccion + reportData.totales.cultos
             ).toFixed(2)}</td>
           </tr>
-        </tbody>
-      </table>
-
-      <table style="margin-bottom: 30px;">
-        <tbody>
-          <!-- SUBTOTAL ASOCIACIÓN -->
           <tr style="background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); font-weight: bold;">
             <td colspan="3" style="padding: 10px; border: 1px solid #90CAF9; font-size: 11px;">SUBTOTAL ASOCIACIÓN</td>
             <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.asociacion.primicia.toFixed(2)}</td>

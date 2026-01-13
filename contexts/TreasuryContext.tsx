@@ -43,9 +43,9 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
       if (arqueosData) {
         setArqueos(JSON.parse(arqueosData));
       }
-       if (churchConfigData) {
-      setChurchConfig(JSON.parse(churchConfigData));
-    }
+      if (churchConfigData) {
+        setChurchConfig(JSON.parse(churchConfigData));
+      }
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -57,7 +57,7 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
     const config: ChurchConfig = { nombre };
     setChurchConfig(config);
     await AsyncStorage.setItem(CHURCH_CONFIG_KEY, JSON.stringify(config));
-}
+  };
 
   const addReceipt = async (receipt: Omit<IncomeReceipt, 'id'>) => {
     const newReceipt: IncomeReceipt = {
@@ -107,78 +107,44 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
     await AsyncStorage.setItem(BALANCE_KEY, JSON.stringify(updated));
   };
 
-  // Función para obtener saldo inicial por período (YYYY-MM)
+  // ✅ NUEVA FUNCIÓN: Obtener último arqueo antes de una fecha
+  const getUltimoArqueoAntesDe = (periodo: string): Arqueo | null => {
+    if (arqueos.length === 0) return null;
+    
+    // Convertir período a fecha de fin del mes
+    const [year, month] = periodo.split('-').map(Number);
+    const periodoDate = new Date(year, month, 0); // Último día del mes
+    
+    // Filtrar arqueos que terminaron ANTES o EN este período
+    const arqueosAnteriores = arqueos.filter(a => {
+      const arqueoEndDate = new Date(a.endDate);
+      return arqueoEndDate <= periodoDate;
+    });
+    
+    if (arqueosAnteriores.length === 0) return null;
+    
+    // Retornar el más reciente
+    return arqueosAnteriores.sort((a, b) => 
+      new Date(b.endDate).getTime() - new Date(a.endDate).getTime()
+    )[0];
+  };
+
+  // ✅ FUNCIÓN MEJORADA: Obtener saldo inicial por período (YYYY-MM)
   const getSaldoInicialPorPeriodo = (periodo: string): number => {
+    // PRIMERO: Buscar si hay un saldo manual configurado
     const manualBalance = balances.find(b => b.periodo === periodo);
     if (manualBalance) {
       return manualBalance.saldoInicial;
     }
     
-    // Si no hay saldo manual, calcular desde el período anterior
-    const [year, month] = periodo.split('-').map(Number);
-    const previousDate = new Date(year, month - 2, 1);
-    const previousPeriodo = previousDate.toISOString().substring(0, 7);
-    
-    // Evitar recursión infinita: si es el primer mes, retornar 0
-    if (previousDate.getFullYear() < 2000) {
-      return 0;
+    // SEGUNDO: Buscar el último arqueo ANTES o EN este período
+    const ultimoArqueo = getUltimoArqueoAntesDe(periodo);
+    if (ultimoArqueo) {
+      return ultimoArqueo.saldoFinal;
     }
     
-    const previousMonthStart = `${previousPeriodo}-01`;
-    const previousMonthEnd = new Date(year, month - 1, 0).toISOString().split('T')[0];
-    
-    const previousReceipts = receipts.filter(r => r.fecha >= previousMonthStart && r.fecha <= previousMonthEnd);
-    const previousExpenses = expenses.filter(e => e.fecha >= previousMonthStart && e.fecha <= previousMonthEnd);
-    
-    const previousTotales = previousReceipts.reduce(
-      (acc, receipt) => ({
-        pobres: acc.pobres + (receipt.rubros.pobres ?? 0),
-        agradecimiento: acc.agradecimiento + (receipt.rubros.agradecimiento ?? 0),
-        escuelaSabatica: acc.escuelaSabatica + (receipt.rubros.escuelaSabatica ?? 0),
-        jovenes: acc.jovenes + (receipt.rubros.jovenes ?? 0),
-        adolescentes: acc.adolescentes + (receipt.rubros.adolescentes ?? 0),
-        ninos: acc.ninos + (receipt.rubros.ninos ?? 0),
-        educacion: acc.educacion + (receipt.rubros.educacion ?? 0),
-        salud: acc.salud + (receipt.rubros.salud ?? 0),
-        obraMisionera: acc.obraMisionera + (receipt.rubros.obraMisionera ?? 0),
-        musica: acc.musica + (receipt.rubros.musica ?? 0),
-        construccion: acc.construccion + (receipt.rubros.construccion ?? 0),
-        cultos: acc.cultos + (receipt.rubros.cultos ?? 0),
-      }),
-      {
-        pobres: 0,
-        agradecimiento: 0,
-        escuelaSabatica: 0,
-        jovenes: 0,
-        adolescentes: 0,
-        ninos: 0,
-        educacion: 0,
-        salud: 0,
-        obraMisionera: 0,
-        musica: 0,
-        construccion: 0,
-        cultos: 0,
-      }
-    );
-
-    const previousIglesiaTotal = 
-      previousTotales.pobres * 0.45 +
-      previousTotales.agradecimiento * 0.45 +
-      previousTotales.escuelaSabatica * 0.45 +
-      previousTotales.jovenes * 0.45 +
-      previousTotales.adolescentes * 0.45 +
-      previousTotales.ninos * 0.45 +
-      previousTotales.educacion * 0.45 +
-      previousTotales.salud * 0.45 +
-      previousTotales.obraMisionera * 0.45 +
-      previousTotales.musica * 0.45 +
-      previousTotales.construccion * 0.9 +
-      previousTotales.cultos * 0.9;
-
-    const previousEgresos = previousExpenses.reduce((sum, e) => sum + e.monto, 0);
-    const previousSaldoInicial = getSaldoInicialPorPeriodo(previousPeriodo);
-    
-    return previousSaldoInicial + previousIglesiaTotal - previousEgresos;
+    // TERCERO: Si no hay arqueos ni saldo manual, retornar 0
+    return 0;
   };
 
   // Función MEJORADA: Calcula el saldo inicial desde un rango de fechas
@@ -199,7 +165,7 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
       endDate,
       saldoInicial: reportData.saldoInicial,
       saldoFinal: reportData.subtotales.saldoFinalIglesia,
-      saldoIglesia: reportData.subtotales.saldoIlgesia,
+      saldoIglesia: reportData.subtotales.saldoIglesia,
       totalIngresos: reportData.subtotales.iglesia.total,
       totalEgresos: reportData.subtotales.totalEgresos,
       totalRecibos: reportData.receipts.length,
@@ -222,14 +188,12 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
     )[0];
   };
 
-  // ✨ NUEVO: Eliminar arqueo
   const deleteArqueo = async (id: string) => {
     const updated = arqueos.filter(a => a.id !== id);
     setArqueos(updated);
     await AsyncStorage.setItem(ARQUEOS_KEY, JSON.stringify(updated));
   };
 
-  // ✨ NUEVO: Obtener arqueos ordenados por fecha (más reciente primero)
   const getArqueosOrdenados = (): Arqueo[] => {
     return [...arqueos].sort((a, b) => 
       new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()
@@ -249,10 +213,11 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
     deleteExpense,
     setSaldoInicial,
     getSaldoInicial,
-    getSaldoInicialPorPeriodo, // Exportar también esta función
+    getSaldoInicialPorPeriodo,
     guardarArqueo,
     getUltimoArqueo,
-    deleteArqueo, 
+    getUltimoArqueoAntesDe, // ✅ Nueva función exportada
+    deleteArqueo,
     getArqueosOrdenados,
     setChurchName,
   };

@@ -36,6 +36,12 @@
           "iosAppId": "ca-app-pub-3940256099942544~1458002511"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2503a337-feea-4504-aff3-4b47adbb33ba"
+      }
+    }
   }
 }

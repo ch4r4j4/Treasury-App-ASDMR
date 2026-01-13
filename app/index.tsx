@@ -43,7 +43,7 @@ export default function HomeScreen() {
                   <TrendingUp size={20} color="#4CAF50" />
                 </View>
                 <Text style={styles.summaryLabel}>Ingresos</Text>
-                <Text style={styles.summaryAmount}>${totalIngresos.toFixed(2)}</Text>
+                <Text style={styles.summaryAmount}>S/{totalIngresos.toFixed(2)}</Text>
               </View>
               
               <View style={styles.summaryDivider} />
@@ -53,7 +53,7 @@ export default function HomeScreen() {
                   <TrendingDown size={20} color="#F44336" />
                 </View>
                 <Text style={styles.summaryLabel}>Egresos</Text>
-                <Text style={styles.summaryAmount}>${totalEgresos.toFixed(2)}</Text>
+                <Text style={styles.summaryAmount}>S/{totalEgresos.toFixed(2)}</Text>
               </View>
             </View>
             
@@ -64,7 +64,7 @@ export default function HomeScreen() {
                 { color: monthData.subtotales.saldoIglesia >= 0 ? '#4CAF50' : '#F44336' }
                 ///aqui arriba indica el color(ingreso neto) si los ingresos netos son + pues verde, si  - en rojo
               ]}>
-                ${monthData.subtotales.saldoFinalIglesia.toFixed(2)}
+                S/{monthData.subtotales.saldoFinalIglesia.toFixed(2)}
               </Text>
             </View>
           </View>
