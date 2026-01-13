@@ -274,7 +274,7 @@ export const generateMonthlyPdfHtml = (
 
           <!-- SUBTOTAL OTROS -->
           <tr style="background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); font-weight: bold;">
-            <td colspan="3" style="padding: 10px; border: 1px solid #FFB74D; font-size: 11px;">SUBTOTAL OTROS</td>
+            <td colspan="3" style="padding: 10px; border: 1px solid #FFB74D; font-size: 11px;">Diezmo de iglesia</td>
             <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
             <td style="border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 10px; color: #999;">-</td>
             <td style="border: 1px solid #ddd; padding: 6px; text-align: right; font-size: 10px;">${reportData.subtotales.otros.pobres.toFixed(2)}</td>

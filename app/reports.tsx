@@ -48,7 +48,7 @@ export default function ReportsScreen() {
       Alert.alert(
         '✅ Arqueo Guardado',
         `Período: ${startDate} al ${endDate}\n` +
-        `Saldo Final: $${arqueo.saldoFinal.toFixed(2)}\n\n` +
+        `Saldo Final: S/${arqueo.saldoFinal.toFixed(2)}\n\n` +
         `Este saldo será el punto de partida del próximo arqueo.`,
         [{ text: 'Entendido' }]
       );
@@ -83,7 +83,7 @@ export default function ReportsScreen() {
       { ...reportData, expenses: reportData.expenses },
       startDate, 
       endDate,
-      churchConfig.nombre || 'Iglesia' // ✅ Agrega este parámetro
+      churchConfig.nombre || 'Iglesia'
     );
     
     const { uri } = await Print.printToFileAsync({ 
@@ -246,11 +246,7 @@ export default function ReportsScreen() {
           <View style={styles.content}>
 
             {/* Date Range Selection */}
-            <View style={styles.dateSection}>
-              <View style={styles.dateHeader}>
-                <Calendar size={20} color="#9C27B0" />
-                <Text style={styles.dateSectionTitle}>Rango de Fechas</Text>
-              </View>
+            <View style={styles.dateSection}> 
               
                <View style={styles.dateColumn}>
                 <DatePickerInput
@@ -307,21 +303,29 @@ export default function ReportsScreen() {
                     📊 Saldo Anterior
                   </Text>
                   <Text style={[styles.balanceAmount, { color: '#1976D2' }]}>
-                    ${reportData.saldoInicial.toFixed(2)}
+                    S/{reportData.saldoInicial.toFixed(2)}
+                  </Text>
+                </View>
+
+                {/* ✅ NUEVO: Total Asociación */}
+                <View style={styles.balanceRow}>
+                  <Text style={[styles.balanceLabel, { color: '#9C27B0' }]}>📤 Asociación</Text>
+                  <Text style={[styles.balanceAmount, { color: '#9C27B0' }]}>
+                    S/{reportData.totalAsociacionYOtros.toFixed(2)}
                   </Text>
                 </View>
                 
                 <View style={styles.balanceRow}>
                   <Text style={[styles.balanceLabel, { color: '#4CAF50' }]}>+ Total Iglesia</Text>
                   <Text style={[styles.balanceAmount, { color: '#4CAF50' }]}>
-                    +${reportData.subtotales.iglesia.total.toFixed(2)}
+                    +S/{reportData.subtotales.iglesia.total.toFixed(2)}
                   </Text>
                 </View>
                 
                 <View style={styles.balanceRow}>
                   <Text style={[styles.balanceLabel, { color: '#F44336' }]}>- Total Egresos</Text>
                   <Text style={[styles.balanceAmount, { color: '#F44336' }]}>
-                    -${reportData.subtotales.totalEgresos.toFixed(2)}
+                    -S/{reportData.subtotales.totalEgresos.toFixed(2)}
                   </Text>
                 </View>
                 
@@ -329,7 +333,7 @@ export default function ReportsScreen() {
                   styles.balanceRow, 
                   styles.finalBalanceRow,
                   { 
-                    backgroundColor: reportData.subtotales.saldoIglesia >= 0 ? '#E8F5E9' : '#FFEBEE',
+                    backgroundColor: reportData.subtotales.saldoFinalIglesia >= 0 ? '#E8F5E9' : '#FFEBEE',
                     padding: 16,
                     borderRadius: 12,
                     marginTop: 12
@@ -343,9 +347,9 @@ export default function ReportsScreen() {
                   </View>
                   <Text style={[
                     styles.finalBalanceAmount,
-                    { color: reportData.subtotales.saldoIglesia >= 0 ? '#4CAF50' : '#F44336' }
+                    { color: reportData.subtotales.saldoFinalIglesia >= 0 ? '#4CAF50' : '#F44336' }
                   ]}>
-                    ${reportData.subtotales.saldoIglesia.toFixed(2)}
+                    S/{reportData.subtotales.saldoFinalIglesia.toFixed(2)}
                   </Text>
                 </View>
               </View>
@@ -381,21 +385,30 @@ export default function ReportsScreen() {
                       <View style={styles.arqueoStats}>
                         <View style={styles.arqueoStatItem}>
                           <Text style={styles.arqueoStatLabel}>Saldo Inicial</Text>
-                          <Text style={styles.arqueoStatValue}>${arqueo.saldoInicial.toFixed(2)}</Text>
+                          <Text style={styles.arqueoStatValue}>S/{arqueo.saldoInicial.toFixed(2)}</Text>
                         </View>
+                        
+                        {/* ✅ NUEVO: Asociación en arqueos guardados */}
+                        <View style={styles.arqueoStatItem}>
+                          <Text style={[styles.arqueoStatLabel, { color: '#9C27B0' }]}>Asociación</Text>
+                          <Text style={[styles.arqueoStatValue, { color: '#9C27B0' }]}>
+                            S/{(arqueo.totalAsociacionYOtros || 0).toFixed(2)}
+                          </Text>
+                        </View>
+
                         <View style={styles.arqueoStatItem}>
                           <Text style={[styles.arqueoStatLabel, { color: '#4CAF50' }]}>Ingresos</Text>
-                          <Text style={[styles.arqueoStatValue, { color: '#4CAF50' }]}>+${arqueo.totalIngresos.toFixed(2)}</Text>
+                          <Text style={[styles.arqueoStatValue, { color: '#4CAF50' }]}>+S/{arqueo.totalIngresos.toFixed(2)}</Text>
                         </View>
                         <View style={styles.arqueoStatItem}>
                           <Text style={[styles.arqueoStatLabel, { color: '#F44336' }]}>Egresos</Text>
-                          <Text style={[styles.arqueoStatValue, { color: '#F44336' }]}>-${arqueo.totalEgresos.toFixed(2)}</Text>
+                          <Text style={[styles.arqueoStatValue, { color: '#F44336' }]}>-S/{arqueo.totalEgresos.toFixed(2)}</Text>
                         </View>
                       </View>
 
                       <View style={[styles.arqueoFinal, { backgroundColor: arqueo.saldoFinal >= 0 ? '#E8F5E9' : '#FFEBEE' }]}>
                         <Text style={styles.arqueoFinalLabel}>Saldo Final</Text>
-                        <Text style={[styles.arqueoFinalValue, { color: arqueo.saldoFinal >= 0 ? '#4CAF50' : '#F44336' }]}>${arqueo.saldoFinal.toFixed(2)}</Text>
+                        <Text style={[styles.arqueoFinalValue, { color: arqueo.saldoFinal >= 0 ? '#4CAF50' : '#F44336' }]}>S/{arqueo.saldoFinal.toFixed(2)}</Text>
                       </View>
 
                       <View style={styles.arqueoFooter}>
@@ -415,9 +428,9 @@ export default function ReportsScreen() {
         visible={showSaldoModal}
         onClose={() => setShowSaldoModal(false)}
         onSave={handleSaveSaldo}
-        onSaveChurchName={setChurchName} // ✅ Agrega esto
+        onSaveChurchName={setChurchName}
         currentSaldo={currentSaldo}
-        currentChurchName={churchConfig.nombre} // ✅ Agrega esto
+        currentChurchName={churchConfig.nombre}
         periodo={periodo}
       />
     </View>
@@ -433,19 +446,9 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '700', color: '#1A1A2E' },
   scrollView: { flex: 1 },
   content: { padding: 20 },
-  saldoCard: { backgroundColor: '#E3F2FD', borderRadius: 16, padding: 20, marginBottom: 20, alignItems: 'center', borderWidth: 2, borderColor: '#2196F3' },
-  saldoLabel: { fontSize: 14, color: '#1976D2', fontWeight: '600', marginBottom: 8 },
-  saldoAmount: { fontSize: 32, fontWeight: '800', color: '#1565C0', marginBottom: 12 },
-  configureSaldoButton: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#FFFFFF', borderRadius: 20 },
-  configureSaldoText: { fontSize: 14, fontWeight: '600', color: '#9C27B0' },
   dateSection: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
-  dateHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  dateSectionTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A2E', marginLeft: 8 },
-  dateColumn: {gap: 12},
-  dateRow: { flexDirection: 'row', gap: 12 },
-  dateInputGroup: { flex: 1 },
-  dateLabel: { fontSize: 14, fontWeight: '600', color: '#666', marginBottom: 8 },
-  dateInput: { backgroundColor: '#F5F7FA', borderRadius: 12, padding: 12, fontSize: 14, color: '#1A1A2E', borderWidth: 1, borderColor: '#E0E0E0' },
+  dateSectionTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A2E', marginBottom: 16 },
+  dateColumn: { gap: 12 },
   pdfSection: { marginBottom: 24 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A2E', marginBottom: 12 },
   pdfButton: { flexDirection: 'row', alignItems: 'center', padding: 20, borderRadius: 16, gap: 16, marginBottom: 12 },
@@ -474,8 +477,8 @@ const styles = StyleSheet.create({
   arqueoTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A2E', marginBottom: 4 },
   arqueoPeriodo: { fontSize: 13, color: '#666' },
   deleteButton: { padding: 8 },
-  arqueoStats: { flexDirection: 'row', gap: 12, marginBottom: 12 },
-  arqueoStatItem: { flex: 1, backgroundColor: '#F5F7FA', padding: 12, borderRadius: 8 },
+  arqueoStats: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+  arqueoStatItem: { flex: 1, minWidth: '45%', backgroundColor: '#F5F7FA', padding: 12, borderRadius: 8 },
   arqueoStatLabel: { fontSize: 11, color: '#666', marginBottom: 4 },
   arqueoStatValue: { fontSize: 16, fontWeight: '700', color: '#1A1A2E' },
   arqueoFinal: { padding: 12, borderRadius: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },

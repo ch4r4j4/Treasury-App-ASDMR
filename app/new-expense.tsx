@@ -91,7 +91,7 @@ export default function NewExpenseScreen() {
           <View style={styles.totalContainer}>
             <Text style={styles.footerSaveText}>Total             </Text>
               <Text style={styles.totalAmount}>
-                ${(parseFloat(monto) || 0).toFixed(2)}
+                S/{(parseFloat(monto) || 0).toFixed(2)}
               </Text>
           </View> 
           <TouchableOpacity 

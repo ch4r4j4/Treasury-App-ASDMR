@@ -112,6 +112,7 @@ export interface Arqueo {
   saldoIglesia: number;
   totalIngresos: number;
   totalEgresos: number;
+  totalAsociacionYOtros: number;
   totalRecibos: number; // cantidad de recibos
   totalGastos: number;  // cantidad de gastos
   fechaCreacion: string; // ISO timestamp

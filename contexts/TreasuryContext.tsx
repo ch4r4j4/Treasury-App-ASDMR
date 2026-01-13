@@ -31,21 +31,11 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
         AsyncStorage.getItem(CHURCH_CONFIG_KEY)
       ]);
 
-      if (receiptsData) {
-        setReceipts(JSON.parse(receiptsData));
-      }
-      if (expensesData) {
-        setExpenses(JSON.parse(expensesData));
-      }
-      if (balancesData) {
-        setBalances(JSON.parse(balancesData));
-      }
-      if (arqueosData) {
-        setArqueos(JSON.parse(arqueosData));
-      }
-      if (churchConfigData) {
-        setChurchConfig(JSON.parse(churchConfigData));
-      }
+      if (receiptsData) setReceipts(JSON.parse(receiptsData));
+      if (expensesData) setExpenses(JSON.parse(expensesData));
+      if (balancesData) setBalances(JSON.parse(balancesData));
+      if (arqueosData) setArqueos(JSON.parse(arqueosData));
+      if (churchConfigData) setChurchConfig(JSON.parse(churchConfigData));
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -60,20 +50,14 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
   };
 
   const addReceipt = async (receipt: Omit<IncomeReceipt, 'id'>) => {
-    const newReceipt: IncomeReceipt = {
-      ...receipt,
-      id: Date.now().toString(),
-    };
+    const newReceipt: IncomeReceipt = { ...receipt, id: Date.now().toString() };
     const updated = [...receipts, newReceipt];
     setReceipts(updated);
     await AsyncStorage.setItem(RECEIPTS_KEY, JSON.stringify(updated));
   };
 
   const addExpense = async (expense: Omit<Expense, 'id'>) => {
-    const newExpense: Expense = {
-      ...expense,
-      id: Date.now().toString(),
-    };
+    const newExpense: Expense = { ...expense, id: Date.now().toString() };
     const updated = [...expenses, newExpense];
     setExpenses(updated);
     await AsyncStorage.setItem(EXPENSES_KEY, JSON.stringify(updated));
@@ -91,7 +75,6 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
     await AsyncStorage.setItem(EXPENSES_KEY, JSON.stringify(updated));
   };
 
-  // Función para establecer saldo inicial manualmente
   const setSaldoInicial = async (periodo: string, saldo: number) => {
     const existingIndex = balances.findIndex(b => b.periodo === periodo);
     let updated: TreasuryBalance[];
@@ -107,15 +90,12 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
     await AsyncStorage.setItem(BALANCE_KEY, JSON.stringify(updated));
   };
 
-  // ✅ NUEVA FUNCIÓN: Obtener último arqueo antes de una fecha
   const getUltimoArqueoAntesDe = (periodo: string): Arqueo | null => {
     if (arqueos.length === 0) return null;
     
-    // Convertir período a fecha de fin del mes
     const [year, month] = periodo.split('-').map(Number);
-    const periodoDate = new Date(year, month, 0); // Último día del mes
+    const periodoDate = new Date(year, month, 0);
     
-    // Filtrar arqueos que terminaron ANTES o EN este período
     const arqueosAnteriores = arqueos.filter(a => {
       const arqueoEndDate = new Date(a.endDate);
       return arqueoEndDate <= periodoDate;
@@ -123,33 +103,23 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
     
     if (arqueosAnteriores.length === 0) return null;
     
-    // Retornar el más reciente
     return arqueosAnteriores.sort((a, b) => 
       new Date(b.endDate).getTime() - new Date(a.endDate).getTime()
     )[0];
   };
 
-  // ✅ FUNCIÓN MEJORADA: Obtener saldo inicial por período (YYYY-MM)
   const getSaldoInicialPorPeriodo = (periodo: string): number => {
-    // PRIMERO: Buscar si hay un saldo manual configurado
     const manualBalance = balances.find(b => b.periodo === periodo);
-    if (manualBalance) {
-      return manualBalance.saldoInicial;
-    }
+    if (manualBalance) return manualBalance.saldoInicial;
     
-    // SEGUNDO: Buscar el último arqueo ANTES o EN este período
     const ultimoArqueo = getUltimoArqueoAntesDe(periodo);
-    if (ultimoArqueo) {
-      return ultimoArqueo.saldoFinal;
-    }
+    if (ultimoArqueo) return ultimoArqueo.saldoFinal;
     
-    // TERCERO: Si no hay arqueos ni saldo manual, retornar 0
     return 0;
   };
 
-  // Función MEJORADA: Calcula el saldo inicial desde un rango de fechas
   const getSaldoInicial = (startDate: string, endDate: string): number => {
-    const periodo = startDate.substring(0, 7); // 'YYYY-MM'
+    const periodo = startDate.substring(0, 7);
     return getSaldoInicialPorPeriodo(periodo);
   };
 
@@ -168,6 +138,7 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
       saldoIglesia: reportData.subtotales.saldoIglesia,
       totalIngresos: reportData.subtotales.iglesia.total,
       totalEgresos: reportData.subtotales.totalEgresos,
+      totalAsociacionYOtros: reportData.totalAsociacionYOtros, // ✅ NUEVO
       totalRecibos: reportData.receipts.length,
       totalGastos: reportData.expenses.length,
       fechaCreacion: new Date().toISOString(),
@@ -216,7 +187,7 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
     getSaldoInicialPorPeriodo,
     guardarArqueo,
     getUltimoArqueo,
-    getUltimoArqueoAntesDe, // ✅ Nueva función exportada
+    getUltimoArqueoAntesDe,
     deleteArqueo,
     getArqueosOrdenados,
     setChurchName,
@@ -227,13 +198,8 @@ export const useFilteredData = (startDate: string, endDate: string) => {
   const { receipts, expenses, getSaldoInicial } = useTreasury();
 
   return useMemo(() => {
-    const filteredReceipts = receipts.filter(r => {
-      return r.fecha >= startDate && r.fecha <= endDate;
-    });
-
-    const filteredExpenses = expenses.filter(e => {
-      return e.fecha >= startDate && e.fecha <= endDate;
-    });
+    const filteredReceipts = receipts.filter(r => r.fecha >= startDate && r.fecha <= endDate);
+    const filteredExpenses = expenses.filter(e => e.fecha >= startDate && e.fecha <= endDate);
 
     const totales: Rubros = filteredReceipts.reduce(
       (acc, receipt) => ({
@@ -257,24 +223,10 @@ export const useFilteredData = (startDate: string, endDate: string) => {
         construccion: acc.construccion + (receipt.rubros.construccion ?? 0),
       }),
       {
-        primicia: 0,
-        diezmo: 0,
-        pobres: 0,
-        agradecimiento: 0,
-        cultos: 0,
-        escuelaSabatica: 0,
-        jovenes: 0,
-        adolescentes: 0,
-        ninos: 0,
-        educacion: 0,
-        salud: 0,
-        obraMisionera: 0,
-        musica: 0,
-        renuevaRadio: 0,
-        primerSabado: 0,
-        semanaOracion: 0,
-        misionExtranj: 0,
-        construccion: 0,
+        primicia: 0, diezmo: 0, pobres: 0, agradecimiento: 0, cultos: 0,
+        escuelaSabatica: 0, jovenes: 0, adolescentes: 0, ninos: 0, educacion: 0,
+        salud: 0, obraMisionera: 0, musica: 0, renuevaRadio: 0, primerSabado: 0,
+        semanaOracion: 0, misionExtranj: 0, construccion: 0,
       }
     );
 
@@ -385,9 +337,7 @@ export const useFilteredData = (startDate: string, endDate: string) => {
     
     const saldoInicial = getSaldoInicial(startDate, endDate);
     
-    // FÓRMULA CORRECTA: Saldo Final = Saldo Inicial + Total Iglesia - Egresos
     subtotales.saldoFinalIglesia = saldoInicial + subtotales.iglesia.total - subtotales.totalEgresos;
-
     subtotales.saldoIglesia = subtotales.iglesia.total - subtotales.totalEgresos;
 
     return {

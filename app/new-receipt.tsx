@@ -370,7 +370,7 @@ export default function NewReceiptScreen() {
           <View style={styles.totalContainer}>
             <Text style={styles.footerSaveText}>Total             </Text>
               <Text style={styles.totalAmount}>
-                ${(
+                S/{(
                   (parseFloat(primicia) || 0) +
                   (parseFloat(diezmo) || 0) +
                   (parseFloat(pobres) || 0) +
