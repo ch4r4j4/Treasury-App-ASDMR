@@ -9,7 +9,9 @@ export const generateMonthlyPdfHtml = (
   endDate: string,
   churchName: string = 'Iglesia',
 ): string => {
-  const receiptsTableRows = reportData.receipts.map((receipt, index) => `
+  const receiptsTableRows = reportData.receipts
+  .sort((a, b) => a.fecha.localeCompare(b.fecha)) // ✅ Ordenar por fecha ascendente
+  .map((receipt, index) => `
     <tr style="${index % 2 === 0 ? 'background-color: #f9f9f9;' : ''}">
       <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${receipt.fecha}</td>
       <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${receipt.nombre}</td>
@@ -336,7 +338,9 @@ export const generateMonthlyPdfHtml = (
             </thead>
             <tbody>
               ${reportData.expenses && reportData.expenses.length > 0
-                ? reportData.expenses.map((expense, index) => `
+                ? reportData.expenses
+                  .sort((a, b) => a.fecha.localeCompare(b.fecha))
+                  .map((expense, index) => `
                   <tr style="${index % 2 === 0 ? 'background-color: #fff5f5;' : 'background-color: #ffffff;'}">
                     <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${expense.fecha}</td>
                     <td style="border: 1px solid #ddd; padding: 4px; font-size: 10px;">${expense.descripcion}</td>
@@ -358,7 +362,7 @@ export const generateMonthlyPdfHtml = (
           <h2 style="text-align: center; margin-bottom: 15px; color: #4CAF50; font-size: 16px;">🎯 Balance Final del Período</h2>
           <div style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); border-radius: 15px; padding: 8px 15px; border: 3px solid #4CAF50;">
 
-            <div style="background: white; border-radius: 10px; padding: 2px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="background: white; border-radius: 10px; padding: 6px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <div>
                   <span style="font-size: 10px; color: #666; font-weight: 600;">📊 Asociacion :</span>
@@ -368,7 +372,7 @@ export const generateMonthlyPdfHtml = (
               </div>
             </div>
 
-            <div style="background: white; border-radius: 15px; padding: 2px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="background: white; border-radius: 15px; padding: 6px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <div>
                   <span style="font-size: 10px; color: #4CAF50; font-weight: 600;">➕ Ingreso Neto Iglesia:</span>
@@ -378,14 +382,14 @@ export const generateMonthlyPdfHtml = (
               </div>
             </div>
 
-            <div style="background: white; border-radius: 15px; padding: 2px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="background: white; border-radius: 15px; padding: 6px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <span style="font-size: 10px; color: #666; font-weight: 600;">📊 Saldo Anterior:</span>
                 <span style="font-size: 14px; font-weight: bold; color: #1976D2;">$${reportData.saldoInicial.toFixed(2)}</span>
               </div>
             </div>
 
-            <div style="background: ${reportData.subtotales.saldoIglesia >= 0 ? 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)' : 'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)'}; border-radius: 12px; padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+            <div style="background: ${reportData.subtotales.saldoIglesia >= 0 ? 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)' : 'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)'}; border-radius: 12px; padding: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                   <div style="font-size: 12px; color: white; font-weight: 700; margin-bottom: 5px;">🎯 SALDO FINAL</div>
