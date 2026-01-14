@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Calendar, Download, FileText, Settings, Save, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Download, FileText, Settings, Save, Trash2 } from 'lucide-react-native';
 import { useTreasury, useFilteredData } from '@/contexts/TreasuryContext';
 import SaldoInicialModal from '@/components/SaldoInicialModal';
-import * as Print from 'expo-print';
+import { useInterstitialAd } from '@/hooks/useInterstitialAd';
+import * as Print from 'expo-print';          
 import * as Sharing from 'expo-sharing';
 import { generateMonthlyPdfHtml, generateAnnualPdfHtml } from '@/utils/pdfTemplates';
 import DatePickerInput from '@/components/DatePickerInput';
@@ -19,14 +20,33 @@ export default function ReportsScreen() {
      deleteArqueo,
      churchConfig, 
      setChurchName,
+     getUltimoArqueo,
     } = useTreasury();
-  
+
+  const { showAd, isLoaded: isAdLoaded } = useInterstitialAd();
+
   const today = new Date();
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-  const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+  const todayStr = today.toISOString().split('T')[0];
   
-  const [startDate, setStartDate] = useState(firstDayOfMonth);
-  const [endDate, setEndDate] = useState(lastDayOfMonth);
+  const getSmartDates = () => {
+    const ultimoArqueo = getUltimoArqueo();
+    
+    if (ultimoArqueo) {
+      // Si hay arqueo, empezar 1 día después de su endDate
+      const arqueoEndDate = new Date(ultimoArqueo.endDate);
+      arqueoEndDate.setDate(arqueoEndDate.getDate() + 1);
+      const smartStartDate = arqueoEndDate.toISOString().split('T')[0];
+      return { start: smartStartDate, end: todayStr };
+    } else {
+      // Si no hay arqueo, usar primer día del mes actual
+      const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+      return { start: firstDayOfMonth, end: todayStr };
+    }
+  };
+
+  const smartDates = getSmartDates();
+  const [startDate, setStartDate] = useState(smartDates.start);
+  const [endDate, setEndDate] = useState(smartDates.end);
   const [showSaldoModal, setShowSaldoModal] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   
@@ -52,6 +72,10 @@ export default function ReportsScreen() {
         `Este saldo será el punto de partida del próximo arqueo.`,
         [{ text: 'Entendido' }]
       );
+
+      const newSmartDates = getSmartDates();
+      setStartDate(newSmartDates.start);
+      setEndDate(newSmartDates.end);
     } catch (error) {
       console.error('Error guardando arqueo:', error);
       Alert.alert('Error', 'No se pudo guardar el arqueo');
@@ -70,6 +94,9 @@ export default function ReportsScreen() {
           onPress: async () => {
             await deleteArqueo(id);
             Alert.alert('Éxito', 'Arqueo eliminado correctamente');
+            const newSmartDates = getSmartDates();
+            setStartDate(newSmartDates.start);
+            setEndDate(newSmartDates.end);
           },
         },
       ]
@@ -79,6 +106,14 @@ export default function ReportsScreen() {
   const handleDownloadMonthlyPdf = async () => {
   try {
     setIsGeneratingPdf(true);
+
+    if (isAdLoaded) {
+        console.log('📺 Mostrando anuncio intersticial...');
+        await showAd();
+        // Esperar un momento para que se cierre el anuncio
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } 
+
     const html = generateMonthlyPdfHtml(
       { ...reportData, expenses: reportData.expenses },
       startDate, 
@@ -119,6 +154,12 @@ export default function ReportsScreen() {
   const handleDownloadAnnualPdf = async () => {
     try {
       setIsGeneratingPdf(true);
+
+      if (isAdLoaded) {
+        console.log('📺 Mostrando anuncio intersticial...');
+        await showAd();
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
       
       const year = parseInt(startDate.substring(0, 4));
       const monthsData = [];

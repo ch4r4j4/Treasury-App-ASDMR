@@ -5,6 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { TreasuryProvider } from "@/contexts/TreasuryContext";
+import AdBanner from "@/components/AdBanner"; // ✅ Importar AdBanner
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,12 +33,14 @@ export default function RootLayout() {
     prepare();
   }, []);
 
-
   return (
     <QueryClientProvider client={queryClient}>
       <TreasuryProvider>
-        <GestureHandlerRootView>
+        <GestureHandlerRootView style={{ flex: 1 }}> {/* ✅ Agregar flex: 1 */}
           <RootLayoutNav />
+          
+          {/* ✅ Banner global - Aparecerá en TODAS las pantallas */}
+          <AdBanner />
         </GestureHandlerRootView>
       </TreasuryProvider>
     </QueryClientProvider>
