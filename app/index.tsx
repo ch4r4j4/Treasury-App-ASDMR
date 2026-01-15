@@ -155,8 +155,8 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingHorizontal: 25,
+    paddingTop: 16,
     paddingBottom: 12,
   },
   title: {
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 22,
     color: '#666',
     fontWeight: '500' as const,
   },

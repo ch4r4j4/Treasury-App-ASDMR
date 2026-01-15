@@ -105,18 +105,21 @@ export interface Rubros {
   // Metadata del Arqueo
 export interface Arqueo {
   id: string;
-  startDate: string; // 'YYYY-MM-DD'
-  endDate: string;   // 'YYYY-MM-DD'
+  startDate: string;
+  endDate: string;
   saldoInicial: number;
   saldoFinal: number;
   saldoIglesia: number;
   totalIngresos: number;
   totalEgresos: number;
   totalAsociacionYOtros: number;
-  totalRecibos: number; // cantidad de recibos
-  totalGastos: number;  // cantidad de gastos
-  fechaCreacion: string; // ISO timestamp
-  descripcion?: string; 
+  totalRecibos: number;
+  totalGastos: number;
+  fechaCreacion: string;
+  descripcion?: string;
+  // ✅ AGREGAR ESTOS:
+  totales?: Rubros; // Guardar totales completos
+  subtotales?: SubtotalCalculations; // Guardar subtotales completos
 }
 
 export interface ChurchConfig {

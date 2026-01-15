@@ -138,11 +138,13 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
       saldoIglesia: reportData.subtotales.saldoIglesia,
       totalIngresos: reportData.subtotales.iglesia.total,
       totalEgresos: reportData.subtotales.totalEgresos,
-      totalAsociacionYOtros: reportData.totalAsociacionYOtros, // ✅ NUEVO
+      totalAsociacionYOtros: reportData.totalAsociacionYOtros,
       totalRecibos: reportData.receipts.length,
       totalGastos: reportData.expenses.length,
       fechaCreacion: new Date().toISOString(),
       descripcion,
+      totales: reportData.totales, // ✅ GUARDAR
+      subtotales: reportData.subtotales, // ✅ GUARDAR
     };
 
     const updated = [...arqueos, nuevoArqueo];

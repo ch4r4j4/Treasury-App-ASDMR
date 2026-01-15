@@ -1,44 +1,46 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Download, FileText, Settings, Save, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Settings, FileText, Download, Trash2 } from 'lucide-react-native';
 import { useTreasury, useFilteredData } from '@/contexts/TreasuryContext';
 import SaldoInicialModal from '@/components/SaldoInicialModal';
 import { useInterstitialAd } from '@/hooks/useInterstitialAd';
-import * as Print from 'expo-print';          
+import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { generateMonthlyPdfHtml, generateAnnualPdfHtml } from '@/utils/pdfTemplates';
 import DatePickerInput from '@/components/DatePickerInput';
 
 export default function ReportsScreen() {
   const router = useRouter();
-  const { setSaldoInicial,
-     getSaldoInicialPorPeriodo, 
-     receipts, expenses, guardarArqueo, 
-     getArqueosOrdenados, 
-     deleteArqueo,
-     churchConfig, 
-     setChurchName,
-     getUltimoArqueo,
-    } = useTreasury();
-
+  const { 
+    setSaldoInicial,
+    getSaldoInicialPorPeriodo, 
+    receipts, 
+    expenses, 
+    guardarArqueo, 
+    getArqueosOrdenados, 
+    deleteArqueo,
+    churchConfig, 
+    setChurchName,
+    getUltimoArqueo,
+  } = useTreasury();
+  
   const { showAd, isLoaded: isAdLoaded } = useInterstitialAd();
-
+  
+  // Fechas inteligentes
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
-  
+
   const getSmartDates = () => {
     const ultimoArqueo = getUltimoArqueo();
     
     if (ultimoArqueo) {
-      // Si hay arqueo, empezar 1 día después de su endDate
       const arqueoEndDate = new Date(ultimoArqueo.endDate);
       arqueoEndDate.setDate(arqueoEndDate.getDate() + 1);
       const smartStartDate = arqueoEndDate.toISOString().split('T')[0];
       return { start: smartStartDate, end: todayStr };
     } else {
-      // Si no hay arqueo, usar primer día del mes actual
       const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
       return { start: firstDayOfMonth, end: todayStr };
     }
@@ -47,121 +49,130 @@ export default function ReportsScreen() {
   const smartDates = getSmartDates();
   const [startDate, setStartDate] = useState(smartDates.start);
   const [endDate, setEndDate] = useState(smartDates.end);
+  const [saldoInicialManual, setSaldoInicialManual] = useState('');
   const [showSaldoModal, setShowSaldoModal] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   
-  const reportData = useFilteredData(startDate, endDate);
-  const periodo = startDate.substring(0, 7);
-  const currentSaldo = getSaldoInicialPorPeriodo(periodo);
   const arqueosGuardados = getArqueosOrdenados();
 
   const handleSaveSaldo = (saldo: number) => {
+    const periodo = startDate.substring(0, 7);
     setSaldoInicial(periodo, saldo);
     Alert.alert('Éxito', 'Saldo inicial guardado correctamente');
   };
 
-  const handleGuardarArqueo = async () => {
+  const handleCalcularArqueo = async () => {
+    if (!startDate || !endDate) {
+      Alert.alert('Error', 'Por favor selecciona las fechas');
+      return;
+    }
+
+    const saldoInicial = parseFloat(saldoInicialManual);
+    if (isNaN(saldoInicial) || saldoInicial < 0) {
+      Alert.alert('Error', 'Por favor ingresa un saldo inicial válido');
+      return;
+    }
+
     try {
+      // Guardar saldo inicial para el período
+      const periodo = startDate.substring(0, 7);
+      await setSaldoInicial(periodo, saldoInicial);
+
+      // Obtener datos del período
+      const reportData = useFilteredData(startDate, endDate);
+
+      // Guardar arqueo
       const descripcion = `Arqueo ${new Date(startDate).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
       const arqueo = await guardarArqueo(startDate, endDate, reportData, descripcion);
       
       Alert.alert(
         '✅ Arqueo Guardado',
         `Período: ${startDate} al ${endDate}\n` +
-        `Saldo Final: S/${arqueo.saldoFinal.toFixed(2)}\n\n` +
-        `Este saldo será el punto de partida del próximo arqueo.`,
+        `Saldo Final: S/${arqueo.saldoFinal.toFixed(2)}`,
         [{ text: 'Entendido' }]
       );
 
+      // Resetear formulario con nuevas fechas inteligentes
       const newSmartDates = getSmartDates();
       setStartDate(newSmartDates.start);
       setEndDate(newSmartDates.end);
+      setSaldoInicialManual('');
     } catch (error) {
       console.error('Error guardando arqueo:', error);
       Alert.alert('Error', 'No se pudo guardar el arqueo');
     }
   };
 
-  const handleDeleteArqueo = (id: string, descripcion: string) => {
-    Alert.alert(
-      'Eliminar Arqueo',
-      `¿Estás seguro de eliminar "${descripcion}"?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            await deleteArqueo(id);
-            Alert.alert('Éxito', 'Arqueo eliminado correctamente');
-            const newSmartDates = getSmartDates();
-            setStartDate(newSmartDates.start);
-            setEndDate(newSmartDates.end);
-          },
-        },
-      ]
-    );
-  };
-
-  const handleDownloadMonthlyPdf = async () => {
-  try {
-    setIsGeneratingPdf(true);
-
-    if (isAdLoaded) {
-        console.log('📺 Mostrando anuncio intersticial...');
+  const handleGeneratePdfForArqueo = async (arqueo: any) => {
+    try {
+      setIsGeneratingPdf(true);
+      
+      // Mostrar anuncio intersticial
+      if (isAdLoaded) {
         await showAd();
-        // Esperar un momento para que se cierre el anuncio
         await new Promise(resolve => setTimeout(resolve, 500));
-      } 
+      }
 
-    const html = generateMonthlyPdfHtml(
-      { ...reportData, expenses: reportData.expenses },
-      startDate, 
-      endDate,
-      churchConfig.nombre || 'Iglesia'
-    );
-    
-    const { uri } = await Print.printToFileAsync({ 
-      html,
-      width: 612,
-      height: 792,
-    });
+      // Obtener datos del período específico del arqueo
+      const arqueoReceipts = receipts.filter(r => r.fecha >= arqueo.startDate && r.fecha <= arqueo.endDate);
+      const arqueoExpenses = expenses.filter(e => e.fecha >= arqueo.startDate && e.fecha <= arqueo.endDate);
+
+      // Reconstruir reportData para este arqueo
+      const arqueoReportData = {
+        receipts: arqueoReceipts,
+        expenses: arqueoExpenses,
+        totales: arqueo.totales || {},
+        saldoInicial: arqueo.saldoInicial,
+        totalAsociacionYOtros: arqueo.totalAsociacionYOtros || 0,
+        subtotales: arqueo.subtotales || { // ✅ Usar guardado
+          iglesia: { total: arqueo.totalIngresos },
+          totalEgresos: arqueo.totalEgresos,
+          saldoFinalIglesia: arqueo.saldoFinal,
+        },
+      };
+
+      const html = generateMonthlyPdfHtml(
+        arqueoReportData,
+        arqueo.startDate,
+        arqueo.endDate,
+        churchConfig.nombre || 'Iglesia'
+      );
+      
+      const { uri } = await Print.printToFileAsync({ html, width: 612, height: 792 });
 
       if (Platform.OS === 'web') {
         const link = document.createElement('a');
         link.href = uri;
-        link.download = `reporte_mensual_${startDate}_${endDate}.pdf`;
+        link.download = `arqueo_${arqueo.startDate}_${arqueo.endDate}.pdf`;
         link.click();
       } else {
         const isAvailable = await Sharing.isAvailableAsync();
         if (isAvailable) {
-          await Sharing.shareAsync(uri, {
-            UTI: '.pdf',
-            mimeType: 'application/pdf',
-          });
+          await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
         } else {
-          Alert.alert('Éxito', 'PDF mensual generado correctamente');
+          Alert.alert('Éxito', 'PDF generado correctamente');
         }
       }
     } catch (error) {
-      console.error('Error generando PDF mensual:', error);
-      Alert.alert('Error', 'No se pudo generar el PDF mensual');
+      console.error('Error generando PDF:', error);
+      Alert.alert('Error', 'No se pudo generar el PDF');
     } finally {
       setIsGeneratingPdf(false);
     }
   };
 
-  const handleDownloadAnnualPdf = async () => {
+  const handleGenerateAnnualPdf = async () => {
     try {
       setIsGeneratingPdf(true);
-
+      
       if (isAdLoaded) {
-        console.log('📺 Mostrando anuncio intersticial...');
         await showAd();
         await new Promise(resolve => setTimeout(resolve, 500));
       }
       
       const year = parseInt(startDate.substring(0, 4));
+      const periodo = startDate.substring(0, 7);
+      const currentSaldo = getSaldoInicialPorPeriodo(periodo);
       const monthsData = [];
       let runningBalance = currentSaldo;
 
@@ -190,58 +201,27 @@ export default function ReportsScreen() {
             construccion: acc.construccion + (receipt.rubros.construccion ?? 0),
             cultos: acc.cultos + (receipt.rubros.cultos ?? 0),
           }),
-          {
-            pobres: 0,
-            agradecimiento: 0,
-            escuelaSabatica: 0,
-            jovenes: 0,
-            adolescentes: 0,
-            ninos: 0,
-            educacion: 0,
-            salud: 0,
-            obraMisionera: 0,
-            musica: 0,
-            construccion: 0,
-            cultos: 0,
-          }
+          { pobres: 0, agradecimiento: 0, escuelaSabatica: 0, jovenes: 0, adolescentes: 0, ninos: 0, educacion: 0, salud: 0, obraMisionera: 0, musica: 0, construccion: 0, cultos: 0 }
         );
 
         const monthIglesiaTotal = 
-          monthTotales.pobres * 0.45 +
-          monthTotales.agradecimiento * 0.45 +
-          monthTotales.escuelaSabatica * 0.45 +
-          monthTotales.jovenes * 0.45 +
-          monthTotales.adolescentes * 0.45 +
-          monthTotales.ninos * 0.45 +
-          monthTotales.educacion * 0.45 +
-          monthTotales.salud * 0.45 +
-          monthTotales.obraMisionera * 0.45 +
-          monthTotales.musica * 0.45 +
-          monthTotales.construccion * 0.9 +
-          monthTotales.cultos * 0.9;
+          monthTotales.pobres * 0.45 + monthTotales.agradecimiento * 0.45 +
+          monthTotales.escuelaSabatica * 0.45 + monthTotales.jovenes * 0.45 +
+          monthTotales.adolescentes * 0.45 + monthTotales.ninos * 0.45 +
+          monthTotales.educacion * 0.45 + monthTotales.salud * 0.45 +
+          monthTotales.obraMisionera * 0.45 + monthTotales.musica * 0.45 +
+          monthTotales.construccion * 0.9 + monthTotales.cultos * 0.9;
 
         const monthEgresos = monthExpenses.reduce((sum, e) => sum + e.monto, 0);
-        
         const saldoInicialMes = i === 0 ? currentSaldo : runningBalance;
         const saldoFinalMes = saldoInicialMes + monthIglesiaTotal - monthEgresos;
         runningBalance = saldoFinalMes;
 
-        monthsData.push({
-          mes: monthName,
-          saldoInicial: saldoInicialMes,
-          ingresos: monthIglesiaTotal,
-          egresos: monthEgresos,
-          saldoFinal: saldoFinalMes,
-        });
+        monthsData.push({ mes: monthName, saldoInicial: saldoInicialMes, ingresos: monthIglesiaTotal, egresos: monthEgresos, saldoFinal: saldoFinalMes });
       }
       
       const html = generateAnnualPdfHtml(year, currentSaldo, monthsData);
-      
-      const { uri } = await Print.printToFileAsync({ 
-        html,
-        width: 612,
-        height: 792,
-      });
+      const { uri } = await Print.printToFileAsync({ html, width: 612, height: 792 });
 
       if (Platform.OS === 'web') {
         const link = document.createElement('a');
@@ -251,10 +231,7 @@ export default function ReportsScreen() {
       } else {
         const isAvailable = await Sharing.isAvailableAsync();
         if (isAvailable) {
-          await Sharing.shareAsync(uri, {
-            UTI: '.pdf',
-            mimeType: 'application/pdf',
-          });
+          await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
         } else {
           Alert.alert('Éxito', 'PDF anual generado correctamente');
         }
@@ -267,147 +244,92 @@ export default function ReportsScreen() {
     }
   };
 
+  const handleDeleteArqueo = (id: string, descripcion: string) => {
+    Alert.alert(
+      'Eliminar Arqueo',
+      `¿Estás seguro de eliminar "${descripcion}"?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteArqueo(id);
+            Alert.alert('Éxito', 'Arqueo eliminado correctamente');
+            const newSmartDates = getSmartDates();
+            setStartDate(newSmartDates.start);
+            setEndDate(newSmartDates.end);
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View style={styles.background}>
       <SafeAreaView style={styles.container} edges={['top']}>
+        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ArrowLeft size={24} color="#1A1A2E" />
           </TouchableOpacity>
           <Text style={styles.title}>Reportes</Text>
-            <TouchableOpacity 
-              onPress={() => setShowSaldoModal(true)} 
-              style={styles.iconButton}
-            >
+          
+          <View style={styles.headerActions}>
+            <TouchableOpacity onPress={handleGenerateAnnualPdf} style={styles.iconButton}>
+              <FileText size={22} color="#9C27B0" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowSaldoModal(true)} style={styles.iconButton}>
               <Settings size={22} color="#9C27B0" />
             </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
-
-            {/* Date Range Selection */}
-            <View style={styles.dateSection}> 
+            {/* Formulario: Generar Nuevo Arqueo */}
+            <View style={styles.formSection}>
+              <Text style={styles.formTitle}>📊 Generar Nuevo Arqueo</Text>
               
-               <View style={styles.dateColumn}>
-                <DatePickerInput
-                  label="Desde"
-                  value={startDate}
-                  onChangeDate={setStartDate}
-                  style={{ marginBottom: 0 }}
-                />
-                
-                <DatePickerInput
-                  label="Hasta"
-                  value={endDate}
-                  onChangeDate={setEndDate}
-                  style={{ marginBottom: 0 }}
+              <DatePickerInput
+                label="Fecha Desde"
+                value={startDate}
+                onChangeDate={setStartDate}
+                style={{ marginBottom: 0 }}
+              />
+              
+              <DatePickerInput
+                label="Fecha Hasta"
+                value={endDate}
+                onChangeDate={setEndDate}
+                style={{ marginBottom: 0 }}
+              />
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Saldo Inicial</Text>
+                <TextInput
+                  style={styles.input}
+                  value={saldoInicialManual}
+                  onChangeText={setSaldoInicialManual}
+                  placeholder="0.00"
+                  placeholderTextColor="#999"
+                  keyboardType="decimal-pad"
                 />
               </View>
-            </View>
 
-            {/* PDF Buttons */}
-            <View style={styles.pdfSection}>
-              <Text style={styles.sectionTitle}>Generar Reportes</Text>
-              
-              <TouchableOpacity 
-                style={[styles.pdfButton, styles.monthlyButton]}
-                onPress={handleDownloadMonthlyPdf}
-                disabled={isGeneratingPdf}
-              >
-                <Download size={24} color="#FFFFFF" />
-                <View style={styles.pdfButtonContent}>
-                  <Text style={styles.pdfButtonTitle}>Reporte Mensual</Text>
-                  <Text style={styles.pdfButtonSubtitle}>PDF detallado del período seleccionado</Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={[styles.pdfButton, styles.annualButton]}
-                onPress={handleDownloadAnnualPdf}
-                disabled={isGeneratingPdf}
-              >
-                <FileText size={24} color="#FFFFFF" />
-                <View style={styles.pdfButtonContent}>
-                  <Text style={styles.pdfButtonTitle}>Reporte Anual</Text>
-                  <Text style={styles.pdfButtonSubtitle}>PDF con resumen del año completo</Text>
-                </View>
+              <TouchableOpacity style={styles.calculateButton} onPress={handleCalcularArqueo}>
+                <Text style={styles.calculateButtonText}>Calcular Arqueo</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Balance Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Balance del Período (Arqueo)</Text>
-              <View style={styles.balanceCard}>
-                <View style={[styles.balanceRow, { backgroundColor: '#E3F2FD', padding: 16, borderRadius: 12, marginBottom: 8 }]}>
-                  <Text style={[styles.balanceLabel, { color: '#1976D2', fontWeight: '700' }]}>
-                    📊 Saldo Anterior
-                  </Text>
-                  <Text style={[styles.balanceAmount, { color: '#1976D2' }]}>
-                    S/{reportData.saldoInicial.toFixed(2)}
-                  </Text>
-                </View>
-
-                {/* ✅ NUEVO: Total Asociación */}
-                <View style={styles.balanceRow}>
-                  <Text style={[styles.balanceLabel, { color: '#9C27B0' }]}>📤 Asociación</Text>
-                  <Text style={[styles.balanceAmount, { color: '#9C27B0' }]}>
-                    S/{reportData.totalAsociacionYOtros.toFixed(2)}
-                  </Text>
-                </View>
-                
-                <View style={styles.balanceRow}>
-                  <Text style={[styles.balanceLabel, { color: '#4CAF50' }]}>+ Total Iglesia</Text>
-                  <Text style={[styles.balanceAmount, { color: '#4CAF50' }]}>
-                    +S/{reportData.subtotales.iglesia.total.toFixed(2)}
-                  </Text>
-                </View>
-                
-                <View style={styles.balanceRow}>
-                  <Text style={[styles.balanceLabel, { color: '#F44336' }]}>- Total Egresos</Text>
-                  <Text style={[styles.balanceAmount, { color: '#F44336' }]}>
-                    -S/{reportData.subtotales.totalEgresos.toFixed(2)}
-                  </Text>
-                </View>
-                
-                <View style={[
-                  styles.balanceRow, 
-                  styles.finalBalanceRow,
-                  { 
-                    backgroundColor: reportData.subtotales.saldoFinalIglesia >= 0 ? '#E8F5E9' : '#FFEBEE',
-                    padding: 16,
-                    borderRadius: 12,
-                    marginTop: 12
-                  }
-                ]}>
-                  <View>
-                    <Text style={styles.finalBalanceLabel}>🎯 Saldo Final</Text>
-                    <Text style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
-                      (Nuevo Saldo Inicial)
-                    </Text>
-                  </View>
-                  <Text style={[
-                    styles.finalBalanceAmount,
-                    { color: reportData.subtotales.saldoFinalIglesia >= 0 ? '#4CAF50' : '#F44336' }
-                  ]}>
-                    S/{reportData.subtotales.saldoFinalIglesia.toFixed(2)}
-                  </Text>
-                </View>
-              </View>
-              
-              <TouchableOpacity style={styles.saveArqueoButton} onPress={handleGuardarArqueo}>
-                <Save size={20} color="#FFFFFF" />
-                <Text style={styles.saveArqueoText}>Guardar Arqueo</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Historial de arqueos */}
+            {/* Historial de Arqueos */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>📋 Historial de Arqueos ({arqueosGuardados.length})</Text>
+              
               {arqueosGuardados.length === 0 ? (
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyText}>No hay arqueos guardados todavía</Text>
-                  <Text style={styles.emptySubtext}>Guarda tu primer arqueo usando el botón de arriba</Text>
+                  <Text style={styles.emptySubtext}>Calcula tu primer arqueo usando el formulario de arriba</Text>
                 </View>
               ) : (
                 <View style={styles.arqueosContainer}>
@@ -418,9 +340,6 @@ export default function ReportsScreen() {
                           <Text style={styles.arqueoTitle}>{arqueo.descripcion || 'Arqueo'}</Text>
                           <Text style={styles.arqueoPeriodo}>{arqueo.startDate} al {arqueo.endDate}</Text>
                         </View>
-                        <TouchableOpacity onPress={() => handleDeleteArqueo(arqueo.id, arqueo.descripcion || 'Arqueo')} style={styles.deleteButton}>
-                          <Trash2 size={20} color="#F44336" />
-                        </TouchableOpacity>
                       </View>
                       
                       <View style={styles.arqueoStats}>
@@ -429,7 +348,6 @@ export default function ReportsScreen() {
                           <Text style={styles.arqueoStatValue}>S/{arqueo.saldoInicial.toFixed(2)}</Text>
                         </View>
                         
-                        {/* ✅ NUEVO: Asociación en arqueos guardados */}
                         <View style={styles.arqueoStatItem}>
                           <Text style={[styles.arqueoStatLabel, { color: '#9C27B0' }]}>Asociación</Text>
                           <Text style={[styles.arqueoStatValue, { color: '#9C27B0' }]}>
@@ -441,6 +359,7 @@ export default function ReportsScreen() {
                           <Text style={[styles.arqueoStatLabel, { color: '#4CAF50' }]}>Ingresos</Text>
                           <Text style={[styles.arqueoStatValue, { color: '#4CAF50' }]}>+S/{arqueo.totalIngresos.toFixed(2)}</Text>
                         </View>
+                        
                         <View style={styles.arqueoStatItem}>
                           <Text style={[styles.arqueoStatLabel, { color: '#F44336' }]}>Egresos</Text>
                           <Text style={[styles.arqueoStatValue, { color: '#F44336' }]}>-S/{arqueo.totalEgresos.toFixed(2)}</Text>
@@ -449,12 +368,29 @@ export default function ReportsScreen() {
 
                       <View style={[styles.arqueoFinal, { backgroundColor: arqueo.saldoFinal >= 0 ? '#E8F5E9' : '#FFEBEE' }]}>
                         <Text style={styles.arqueoFinalLabel}>Saldo Final</Text>
-                        <Text style={[styles.arqueoFinalValue, { color: arqueo.saldoFinal >= 0 ? '#4CAF50' : '#F44336' }]}>S/{arqueo.saldoFinal.toFixed(2)}</Text>
+                        <Text style={[styles.arqueoFinalValue, { color: arqueo.saldoFinal >= 0 ? '#4CAF50' : '#F44336' }]}>
+                          S/{arqueo.saldoFinal.toFixed(2)}
+                        </Text>
                       </View>
 
-                      <View style={styles.arqueoFooter}>
-                        <Text style={styles.arqueoFooterText}>{arqueo.totalRecibos} recibos • {arqueo.totalGastos} gastos</Text>
-                        <Text style={styles.arqueoFooterDate}>{new Date(arqueo.fechaCreacion).toLocaleDateString('es-ES')}</Text>
+                      {/* Acciones */}
+                      <View style={styles.arqueoActions}>
+                        <TouchableOpacity 
+                          style={styles.actionButton}
+                          onPress={() => handleGeneratePdfForArqueo(arqueo)}
+                          disabled={isGeneratingPdf}
+                        >
+                          <Download size={18} color="#2196F3" />
+                          <Text style={styles.actionButtonText}>PDF</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                          style={styles.actionButton}
+                          onPress={() => handleDeleteArqueo(arqueo.id, arqueo.descripcion || 'Arqueo')}
+                        >
+                          <Trash2 size={18} color="#F44336" />
+                          <Text style={[styles.actionButtonText, { color: '#F44336' }]}>Eliminar</Text>
+                        </TouchableOpacity>
                       </View>
                     </View>
                   ))}
@@ -470,9 +406,9 @@ export default function ReportsScreen() {
         onClose={() => setShowSaldoModal(false)}
         onSave={handleSaveSaldo}
         onSaveChurchName={setChurchName}
-        currentSaldo={currentSaldo}
+        currentSaldo={0}
         currentChurchName={churchConfig.nombre}
-        periodo={periodo}
+        periodo=""
       />
     </View>
   );
@@ -483,41 +419,29 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
   backButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  iconButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700', color: '#1A1A2E' },
+  headerActions: { flexDirection: 'row', gap: 8 },
+  iconButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   scrollView: { flex: 1 },
   content: { padding: 20 },
-  dateSection: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
-  dateSectionTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A2E', marginBottom: 16 },
-  dateColumn: { gap: 12 },
-  pdfSection: { marginBottom: 24 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A2E', marginBottom: 12 },
-  pdfButton: { flexDirection: 'row', alignItems: 'center', padding: 20, borderRadius: 16, gap: 16, marginBottom: 12 },
-  monthlyButton: { backgroundColor: '#2196F3' },
-  annualButton: { backgroundColor: '#9C27B0' },
-  pdfButtonContent: { flex: 1 },
-  pdfButtonTitle: { fontSize: 18, fontWeight: '700', color: '#FFFFFF', marginBottom: 4 },
-  pdfButtonSubtitle: { fontSize: 14, color: 'rgba(255, 255, 255, 0.9)' },
+  formSection: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, marginBottom: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
+  formTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A2E', marginBottom: 16 },
+  inputGroup: { marginBottom: 16 },
+  label: { fontSize: 14, fontWeight: '600', color: '#666', marginBottom: 8 },
+  input: { backgroundColor: '#F5F7FA', borderRadius: 12, padding: 16, fontSize: 16, color: '#1A1A2E', borderWidth: 1, borderColor: '#E0E0E0' },
+  calculateButton: { backgroundColor: '#4CAF50', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 8 },
+  calculateButtonText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   section: { marginBottom: 20 },
-  balanceCard: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
-  balanceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
-  balanceLabel: { fontSize: 16, color: '#666' },
-  balanceAmount: { fontSize: 18, fontWeight: '700', color: '#1A1A2E' },
-  finalBalanceRow: { borderTopWidth: 3, borderTopColor: '#E0E0E0', marginTop: 12, paddingTop: 16 },
-  finalBalanceLabel: { fontSize: 20, fontWeight: '800', color: '#1A1A2E' },
-  finalBalanceAmount: { fontSize: 28, fontWeight: '900' },
-  saveArqueoButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#4CAF50', padding: 16, borderRadius: 12, marginTop: 16 },
-  saveArqueoText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A2E', marginBottom: 12 },
   emptyState: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 40, alignItems: 'center' },
   emptyText: { fontSize: 15, color: '#999', fontWeight: '600', marginBottom: 8 },
-  emptySubtext: { fontSize: 13, color: '#CCC' },
+  emptySubtext: { fontSize: 13, color: '#CCC', textAlign: 'center' },
   arqueosContainer: { gap: 12 },
   arqueoCard: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2, borderLeftWidth: 4, borderLeftColor: '#9C27B0' },
-  arqueoHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
+  arqueoHeader: { marginBottom: 12 },
   arqueoTitleContainer: { flex: 1 },
   arqueoTitle: { fontSize: 16, fontWeight: '700', color: '#1A1A2E', marginBottom: 4 },
   arqueoPeriodo: { fontSize: 13, color: '#666' },
-  deleteButton: { padding: 8 },
   arqueoStats: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
   arqueoStatItem: { flex: 1, minWidth: '45%', backgroundColor: '#F5F7FA', padding: 12, borderRadius: 8 },
   arqueoStatLabel: { fontSize: 11, color: '#666', marginBottom: 4 },
@@ -525,7 +449,7 @@ const styles = StyleSheet.create({
   arqueoFinal: { padding: 12, borderRadius: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   arqueoFinalLabel: { fontSize: 14, fontWeight: '600', color: '#666' },
   arqueoFinalValue: { fontSize: 20, fontWeight: '800' },
-  arqueoFooter: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F0F0F0' },
-  arqueoFooterText: { fontSize: 12, color: '#999' },
-  arqueoFooterDate: { fontSize: 12, color: '#999', fontStyle: 'italic' },
+  arqueoActions: { flexDirection: 'row', gap: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F0F0F0' },
+  actionButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, backgroundColor: '#F5F7FA', borderRadius: 8 },
+  actionButtonText: { fontSize: 14, fontWeight: '600', color: '#2196F3' },
 });
