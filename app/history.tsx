@@ -70,7 +70,7 @@ export default function HistoryScreen() {
     .sort((a, b) => b.fecha.localeCompare(a.fecha));
 
   const toggleSelection = (id: string, type: 'income' | 'expense') => {
-    const key = `${type}-${id}`;
+    const key = `${type}::${id}`; // ✅ Usar :: en lugar de - para evitar conflictos
     const newSelected = new Set(selectedIds);
     if (newSelected.has(key)) {
       newSelected.delete(key);
@@ -81,7 +81,7 @@ export default function HistoryScreen() {
   };
 
   const selectAll = () => {
-    const allKeys = new Set(allTransactions.map(t => `${t.type}-${t.id}`));
+    const allKeys = new Set(allTransactions.map(t => `${t.type}::${t.id}`));
     setSelectedIds(allKeys);
   };
 
@@ -89,7 +89,7 @@ export default function HistoryScreen() {
     setSelectedIds(new Set());
   };
 
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = async () => { // ✅ Hacer async
     if (selectedIds.size === 0) {
       Alert.alert('Aviso', 'No hay registros seleccionados');
       return;
@@ -103,18 +103,30 @@ export default function HistoryScreen() {
         {
           text: 'Eliminar',
           style: 'destructive',
-          onPress: () => {
-            selectedIds.forEach(key => {
-              const [type, id] = key.split('-');
-              if (type === 'income') {
-                deleteReceipt(id);
-              } else {
-                deleteExpense(id);
-              }
-            });
-            setSelectedIds(new Set());
-            setSelectionMode(false);
-            Alert.alert('Éxito', 'Registros eliminados correctamente');
+          onPress: async () => { // ✅ Hacer async
+            try {
+              // ✅ Esperar a que TODAS las eliminaciones terminen
+              const deletePromises: Promise<void>[] = [];
+              
+              selectedIds.forEach(key => {
+                const [type, id] = key.split('::'); // ✅ Split usando ::
+                if (type === 'income') {
+                  deletePromises.push(deleteReceipt(id));
+                } else if (type === 'expense') {
+                  deletePromises.push(deleteExpense(id));
+                }
+              });
+
+              // ✅ Esperar a que TODAS terminen
+              await Promise.all(deletePromises);
+              
+              setSelectedIds(new Set());
+              setSelectionMode(false);
+              Alert.alert('✅ Éxito', `${selectedIds.size} registro(s) eliminado(s) correctamente`);
+            } catch (error) {
+              console.error('Error eliminando registros:', error);
+              Alert.alert('Error', 'Hubo un problema al eliminar algunos registros');
+            }
           },
         },
       ]
@@ -312,7 +324,7 @@ export default function HistoryScreen() {
               </View>
             ) : (
               allTransactions.map((transaction) => {
-                const key = `${transaction.type}-${transaction.id}`;
+                const key = `${transaction.type}::${transaction.id}`; // ✅ Usar ::
                 const isSelected = selectedIds.has(key);
 
                 if (transaction.type === 'income') {
