@@ -63,16 +63,37 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
     await AsyncStorage.setItem(EXPENSES_KEY, JSON.stringify(updated));
   };
 
+  // ✅ SOLUCIÓN: Usar setState con función callback para evitar race conditions
   const deleteReceipt = async (id: string) => {
-    const updated = receipts.filter(r => r.id !== id);
-    setReceipts(updated);
-    await AsyncStorage.setItem(RECEIPTS_KEY, JSON.stringify(updated));
+    return new Promise<void>((resolve) => {
+      setReceipts((currentReceipts) => {
+        const updated = currentReceipts.filter(r => r.id !== id);
+        // Guardar en AsyncStorage DESPUÉS de actualizar el estado
+        AsyncStorage.setItem(RECEIPTS_KEY, JSON.stringify(updated))
+          .then(() => resolve())
+          .catch((error) => {
+            console.error('Error saving receipts:', error);
+            resolve(); // Resolver de todas formas para no bloquear
+          });
+        return updated;
+      });
+    });
   };
 
   const deleteExpense = async (id: string) => {
-    const updated = expenses.filter(e => e.id !== id);
-    setExpenses(updated);
-    await AsyncStorage.setItem(EXPENSES_KEY, JSON.stringify(updated));
+    return new Promise<void>((resolve) => {
+      setExpenses((currentExpenses) => {
+        const updated = currentExpenses.filter(e => e.id !== id);
+        // Guardar en AsyncStorage DESPUÉS de actualizar el estado
+        AsyncStorage.setItem(EXPENSES_KEY, JSON.stringify(updated))
+          .then(() => resolve())
+          .catch((error) => {
+            console.error('Error saving expenses:', error);
+            resolve(); // Resolver de todas formas para no bloquear
+          });
+        return updated;
+      });
+    });
   };
 
   const setSaldoInicial = async (periodo: string, saldo: number) => {
@@ -143,8 +164,8 @@ export const [TreasuryProvider, useTreasury] = createContextHook(() => {
       totalGastos: reportData.expenses.length,
       fechaCreacion: new Date().toISOString(),
       descripcion,
-      totales: reportData.totales, // ✅ GUARDAR
-      subtotales: reportData.subtotales, // ✅ GUARDAR
+      totales: reportData.totales,
+      subtotales: reportData.subtotales,
     };
 
     const updated = [...arqueos, nuevoArqueo];
