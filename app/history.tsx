@@ -89,27 +89,31 @@ export default function HistoryScreen() {
     setSelectedIds(new Set());
   };
 
-  const handleDeleteSelected = async () => { // ✅ Hacer async
+  const handleDeleteSelected = async () => {
     if (selectedIds.size === 0) {
       Alert.alert('Aviso', 'No hay registros seleccionados');
       return;
     }
 
+    // ✅ GUARDAR el count ANTES de empezar a eliminar
+    const totalToDelete = selectedIds.size;
+
     Alert.alert(
       'Eliminar Seleccionados',
-      `¿Está seguro de eliminar ${selectedIds.size} registro(s)?`,
+      `¿Está seguro de eliminar ${totalToDelete} registro(s)?`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Eliminar',
           style: 'destructive',
-          onPress: async () => { // ✅ Hacer async
+          onPress: async () => {
             try {
-              // ✅ Esperar a que TODAS las eliminaciones terminen
+              // ✅ Convertir Set a Array para iterar correctamente
+              const keysArray = Array.from(selectedIds);
               const deletePromises: Promise<void>[] = [];
               
-              selectedIds.forEach(key => {
-                const [type, id] = key.split('::'); // ✅ Split usando ::
+              keysArray.forEach(key => {
+                const [type, id] = key.split('::');
                 if (type === 'income') {
                   deletePromises.push(deleteReceipt(id));
                 } else if (type === 'expense') {
@@ -122,7 +126,9 @@ export default function HistoryScreen() {
               
               setSelectedIds(new Set());
               setSelectionMode(false);
-              Alert.alert('✅ Éxito', `${selectedIds.size} registro(s) eliminado(s) correctamente`);
+              
+              // ✅ Usar la variable guardada
+              Alert.alert('✅ Éxito', `${totalToDelete} registro(s) eliminado(s) correctamente`);
             } catch (error) {
               console.error('Error eliminando registros:', error);
               Alert.alert('Error', 'Hubo un problema al eliminar algunos registros');
