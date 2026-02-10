@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react';
 import { Platform } from 'react-native';
 import { InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile-ads';
 
-// IDs de prueba (cambiar a reales en producción)
 const adUnitId = __DEV__
-  ? TestIds.INTERSTITIAL
+  ? TestIds.INTERSTITIAL // Anuncios de prueba SOLO en desarrollo
   : Platform.OS === 'ios'
-    ? process.env.EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_ID || TestIds.INTERSTITIAL
-    : process.env.EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_ID || TestIds.INTERSTITIAL;
+    ? process.env.EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_ID || ''
+    : process.env.EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_ID || '';
+
+// ⚠️ Warning si no hay ID configurado en producción
+if (!__DEV__ && !adUnitId) {
+  console.warn('⚠️ AdMob Interstitial ID not configured for production!');
+}
 
 export const useInterstitialAd = () => {
   const [interstitial, setInterstitial] = useState<InterstitialAd | null>(null);
@@ -15,6 +19,12 @@ export const useInterstitialAd = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    // Si no hay adUnitId configurado, no inicializar
+    if (!adUnitId) {
+      console.warn('⚠️ Interstitial ad disabled: No ad unit ID');
+      return;
+    }
+
     // Crear y cargar el anuncio intersticial
     const ad = InterstitialAd.createForAdRequest(adUnitId, {
       requestNonPersonalizedAdsOnly: false,

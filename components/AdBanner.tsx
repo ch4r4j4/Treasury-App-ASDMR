@@ -2,15 +2,27 @@ import { useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 
-// IDs de prueba (cambiar a reales en producción)
+// ✅ CONFIGURACIÓN DE PRODUCCIÓN
+// Solo usa TestIds en desarrollo (__DEV__ = true)
+// En producción usa las variables de entorno o falla con un warning
 const adUnitId = __DEV__ 
-  ? TestIds.BANNER  // ID de prueba en desarrollo
+  ? TestIds.BANNER  // Anuncios de prueba SOLO en desarrollo
   : Platform.OS === 'ios' 
-    ? process.env.EXPO_PUBLIC_ADMOB_IOS_BANNER_ID || TestIds.BANNER
-    : process.env.EXPO_PUBLIC_ADMOB_ANDROID_BANNER_ID || TestIds.BANNER;
+    ? process.env.EXPO_PUBLIC_ADMOB_IOS_BANNER_ID || ''
+    : process.env.EXPO_PUBLIC_ADMOB_ANDROID_BANNER_ID || '';
+
+// ⚠️ Warning si no hay ID configurado en producción
+if (!__DEV__ && !adUnitId) {
+  console.warn('⚠️ AdMob Banner ID not configured for production!');
+}
 
 export default function AdBanner() {
   const [bannerHeight, setBannerHeight] = useState(50);
+
+  // Si no hay adUnitId configurado, no mostrar nada
+  if (!adUnitId) {
+    return null;
+  }
 
   return (
     <View 
