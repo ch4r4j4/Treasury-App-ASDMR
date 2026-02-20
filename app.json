@@ -2,7 +2,7 @@
   "expo": {
     "name": "Sokhen ASDMR",
     "slug": "tesoreria-iglesia",
-    "version": "1.0.1",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -18,7 +18,7 @@
     },
     "android": {
       "package": "com.sokhen.app",
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1E1E1F"
@@ -36,7 +36,7 @@
       [
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-7167625709383602~2200085369",
+          "androidAppId": "ca-app-pub-7167625709383602~9182935307",
           "iosAppId": "ca-app-pub-3940256099942544~1458002511"
         }
       ]
