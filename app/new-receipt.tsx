@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Save } from 'lucide-react-native';
 import { useTreasury } from '@/contexts/TreasuryContext';
 import DatePickerInput from '@/components/DatePickerInput';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function NewReceiptScreen() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function NewReceiptScreen() {
   const [construccion, setConstruccion] = useState('');
   const [cultos, setCultos] = useState('');
 
+  const insets = useSafeAreaInsets();
 
   const handleSave = async () => {
     if (!nombre.trim()) {

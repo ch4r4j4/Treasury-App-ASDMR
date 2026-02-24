@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Save } from 'lucide-react-native';
 import { useTreasury } from '@/contexts/TreasuryContext';
 import DatePickerInput from '@/components/DatePickerInput';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function NewExpenseScreen() {
   const router = useRouter();
@@ -13,6 +14,8 @@ export default function NewExpenseScreen() {
   const [descripcion, setDescripcion] = useState('');
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [monto, setMonto] = useState('');
+
+  const insets = useSafeAreaInsets();
 
   const handleSave = async () => {
     if (!descripcion.trim()) {

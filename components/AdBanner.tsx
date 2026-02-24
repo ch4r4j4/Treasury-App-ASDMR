@@ -19,10 +19,11 @@ if (!__DEV__ && !adUnitId) {
 export default function AdBanner() {
   const [bannerHeight, setBannerHeight] = useState(50);
 
-  // Si no hay adUnitId configurado, no mostrar nada
   if (!adUnitId) {
+    console.warn('adUnitId está vacío!');
     return null;
   }
+  console.log('adUnitId en uso:', adUnitId);
 
   return (
     <View 
